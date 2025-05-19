@@ -12,6 +12,9 @@ import Profile from "./pages/Profile";
 import Connect from "./pages/Connect";
 import JournalPage from "./pages/JournalPage";
 import ToolkitPage from "./pages/ToolkitPage";
+import AboutPage from "./pages/AboutPage";
+import LoveLanguagesPage from "./pages/LoveLanguagesPage";
+import EmotionsWheelPage from "./pages/EmotionsWheelPage";
 import { useEffect } from "react";
 
 const queryClient = new QueryClient();
@@ -45,6 +48,9 @@ const App = () => (
           <Route path="/connect" element={<AppLayout><Connect /></AppLayout>} />
           <Route path="/journal" element={<AppLayout><JournalPage /></AppLayout>} />
           <Route path="/toolkit" element={<AppLayout><ToolkitPage /></AppLayout>} />
+          <Route path="/love-languages" element={<AppLayout><LoveLanguagesPage /></AppLayout>} />
+          <Route path="/emotions-wheel" element={<AppLayout><EmotionsWheelPage /></AppLayout>} />
+          <Route path="/about" element={<AppLayout><AboutPage /></AppLayout>} />
           <Route path="*" element={<AppLayout><NotFound /></AppLayout>} />
         </Routes>
       </BrowserRouter>
