@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -193,7 +192,7 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </Link>
-        <Link to="/activities">
+        <Link to="/toolkit">
           <Card className="h-full hover:border-primary/50 transition-colors cursor-pointer">
             <CardContent className="flex flex-col items-center justify-center p-6 text-center h-full">
               <div className="rounded-full bg-primary/10 p-3 mb-3">

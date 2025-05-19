@@ -57,66 +57,78 @@ const Index = () => {
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
-            <div className="bloom-card hover:scale-105 transition-transform">
-              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                <Heart className="h-5 w-5 text-primary" />
+            <Link to="/love-languages" className="block">
+              <div className="bloom-card hover:scale-105 transition-transform">
+                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                  <Heart className="h-5 w-5 text-primary" />
+                </div>
+                <h3 className="text-xl font-bold">Love Languages</h3>
+                <p className="text-muted-foreground">
+                  Discover how you and your partner prefer to give and receive love with our 
+                  5 Love Languages assessment.
+                </p>
               </div>
-              <h3 className="text-xl font-bold">Love Languages</h3>
-              <p className="text-muted-foreground">
-                Discover how you and your partner prefer to give and receive love with our 
-                5 Love Languages assessment.
-              </p>
-            </div>
-            <div className="bloom-card hover:scale-105 transition-transform">
-              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 text-primary"><circle cx="12" cy="12" r="10"/><path d="M12 2a5 5 0 0 0-2.45 9.33 5 5 0 0 1-3.91 4.61 10 10 0 0 0 12.71 0 5 5 0 0 1-3.9-4.62A5 5 0 0 0 12 2Z"/></svg>
+            </Link>
+            <Link to="/emotions-wheel" className="block">
+              <div className="bloom-card hover:scale-105 transition-transform">
+                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 text-primary"><circle cx="12" cy="12" r="10"/><path d="M12 2a5 5 0 0 0-2.45 9.33 5 5 0 0 1-3.91 4.61 10 10 0 0 0 12.71 0 5 5 0 0 1-3.9-4.62A5 5 0 0 0 12 2Z"/></svg>
+                </div>
+                <h3 className="text-xl font-bold">Emotions Wheel</h3>
+                <p className="text-muted-foreground">
+                  Identify and express your emotions more clearly, enhancing empathy and understanding 
+                  in your relationship.
+                </p>
               </div>
-              <h3 className="text-xl font-bold">Emotions Wheel</h3>
-              <p className="text-muted-foreground">
-                Identify and express your emotions more clearly, enhancing empathy and understanding 
-                in your relationship.
-              </p>
-            </div>
-            <div className="bloom-card hover:scale-105 transition-transform">
-              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 text-primary"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </Link>
+            <Link to="/journal" className="block">
+              <div className="bloom-card hover:scale-105 transition-transform">
+                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 text-primary"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                </div>
+                <h3 className="text-xl font-bold">Relationship Journal</h3>
+                <p className="text-muted-foreground">
+                  Document your journey together with guided prompts that encourage reflection 
+                  and appreciation.
+                </p>
               </div>
-              <h3 className="text-xl font-bold">Relationship Journal</h3>
-              <p className="text-muted-foreground">
-                Document your journey together with guided prompts that encourage reflection 
-                and appreciation.
-              </p>
-            </div>
-            <div className="bloom-card hover:scale-105 transition-transform">
-              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 text-primary"><path d="M16 22h2a2 2 0 0 0 2-2v-1a7 7 0 0 0-7-7h-2a7 7 0 0 0-7 7v1a2 2 0 0 0 2 2h2"/><circle cx="12" cy="7" r="4"/></svg>
+            </Link>
+            <Link to="/connect" className="block">
+              <div className="bloom-card hover:scale-105 transition-transform">
+                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 text-primary"><path d="M16 22h2a2 2 0 0 0 2-2v-1a7 7 0 0 0-7-7h-2a7 7 0 0 0-7 7v1a2 2 0 0 0 2 2h2"/><circle cx="12" cy="7" r="4"/></svg>
+                </div>
+                <h3 className="text-xl font-bold">Partner Connection</h3>
+                <p className="text-muted-foreground">
+                  Link accounts with your partner to track your growth together and celebrate 
+                  relationship milestones.
+                </p>
               </div>
-              <h3 className="text-xl font-bold">Partner Connection</h3>
-              <p className="text-muted-foreground">
-                Link accounts with your partner to track your growth together and celebrate 
-                relationship milestones.
-              </p>
-            </div>
-            <div className="bloom-card hover:scale-105 transition-transform">
-              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 text-primary"><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/><path d="m21 8-4-4-4 4"/><path d="M17 4v16"/></svg>
+            </Link>
+            <Link to="/toolkit" className="block">
+              <div className="bloom-card hover:scale-105 transition-transform">
+                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 text-primary"><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/><path d="m21 8-4-4-4 4"/><path d="M17 4v16"/></svg>
+                </div>
+                <h3 className="text-xl font-bold">Conversation Starters</h3>
+                <p className="text-muted-foreground">
+                  Spark meaningful discussions with curated questions that build intimacy 
+                  and deepen your connection.
+                </p>
               </div>
-              <h3 className="text-xl font-bold">Conversation Starters</h3>
-              <p className="text-muted-foreground">
-                Spark meaningful discussions with curated questions that build intimacy 
-                and deepen your connection.
-              </p>
-            </div>
-            <div className="bloom-card hover:scale-105 transition-transform">
-              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 text-primary"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
+            </Link>
+            <Link to="/toolkit" className="block">
+              <div className="bloom-card hover:scale-105 transition-transform">
+                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 text-primary"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
+                </div>
+                <h3 className="text-xl font-bold">Relationship Challenges</h3>
+                <p className="text-muted-foreground">
+                  Participate in guided activities designed to strengthen your bond and create 
+                  shared experiences.
+                </p>
               </div>
-              <h3 className="text-xl font-bold">Relationship Challenges</h3>
-              <p className="text-muted-foreground">
-                Participate in guided activities designed to strengthen your bond and create 
-                shared experiences.
-              </p>
-            </div>
+            </Link>
           </div>
         </div>
       </section>
