@@ -7,9 +7,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Heart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 const ConnectPartner = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [partnerCode, setPartnerCode] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -25,6 +27,8 @@ const ConnectPartner = () => {
         description: "Your partner will need to approve the connection request.",
       });
       setIsLoading(false);
+      // Redirect to the homepage
+      navigate("/");
     }, 1500);
   };
 
@@ -37,6 +41,8 @@ const ConnectPartner = () => {
         description: "Your unique connection code is: BLOOM-123",
       });
       setIsLoading(false);
+      // Redirect to the homepage
+      navigate("/");
     }, 1500);
   };
 
