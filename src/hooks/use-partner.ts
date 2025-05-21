@@ -201,14 +201,17 @@ export function usePartner() {
     setLoadingMessages(true);
 
     try {
-      // Use string literals for the query to avoid type instantiation issues
+      // Fix: Use explicit string template and avoid complex type inference
+      const query = `
+        *,
+        sender:profiles!sender_id(*),
+        receiver:profiles!receiver_id(*)
+      `;
+      
+      // Use a simpler approach without complex type inference
       const { data, error } = await supabase
         .from('messages')
-        .select(`
-          *,
-          sender:profiles!sender_id(*),
-          receiver:profiles!receiver_id(*)
-        `)
+        .select(query)
         .or(`and(sender_id.eq.${user.id},receiver_id.eq.${partnerId}),and(sender_id.eq.${partnerId},receiver_id.eq.${user.id})`)
         .order('created_at', { ascending: true });
 
