@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -201,18 +200,11 @@ export function usePartner() {
     setLoadingMessages(true);
 
     try {
-      // Fix: Use explicit string template and avoid complex type inference
-      const query = `
-        *,
-        sender:profiles!sender_id(*),
-        receiver:profiles!receiver_id(*)
-      `;
-      
-      // Use a simpler approach without complex type inference
+      // Using raw string parameter to avoid type inference issues
       const { data, error } = await supabase
         .from('messages')
-        .select(query)
-        .or(`and(sender_id.eq.${user.id},receiver_id.eq.${partnerId}),and(sender_id.eq.${partnerId},receiver_id.eq.${user.id})`)
+        .select('*, sender:profiles!sender_id(*), receiver:profiles!receiver_id(*)')
+        .or(`sender_id.eq.${user.id}.and.receiver_id.eq.${partnerId},sender_id.eq.${partnerId}.and.receiver_id.eq.${user.id}`)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
