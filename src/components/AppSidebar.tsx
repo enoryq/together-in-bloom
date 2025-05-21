@@ -5,8 +5,6 @@ import {
   Book, 
   MessageCircle, 
   User, 
-  Calendar, 
-  BookOpen, 
   Settings 
 } from "lucide-react";
 import {
@@ -40,7 +38,7 @@ const AppSidebar = () => {
   const toolsNavItems = [
     { to: "/toolkit", text: "All Tools", icon: <MessageCircle size={20} /> },
     { to: "/love-languages", text: "Love Languages", icon: <Heart size={16} /> },
-    { to: "/emotions-wheel", text: "Emotions Wheel", icon: <BookOpen size={16} /> },
+    { to: "/emotions-wheel", text: "Emotions Wheel", icon: <Book size={16} /> },
   ];
 
   const profileNavItems = [
@@ -50,6 +48,15 @@ const AppSidebar = () => {
 
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     isActive ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted/50";
+
+  // Check if any main nav item is active
+  const isMainGroupActive = mainNavItems.some(item => location.pathname === item.to);
+  
+  // Check if any tools nav item is active
+  const isToolsGroupActive = toolsNavItems.some(item => location.pathname === item.to);
+  
+  // Check if any profile nav item is active
+  const isProfileGroupActive = profileNavItems.some(item => location.pathname === item.to);
 
   return (
     <Sidebar
@@ -70,7 +77,7 @@ const AppSidebar = () => {
 
       <SidebarContent>
         {/* Main Navigation Group */}
-        <SidebarGroup defaultOpen>
+        <SidebarGroup>
           <SidebarGroupLabel>Main</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -89,9 +96,7 @@ const AppSidebar = () => {
         </SidebarGroup>
 
         {/* Tools Group */}
-        <SidebarGroup defaultOpen={location.pathname.includes('/toolkit') || 
-                                 location.pathname.includes('/love-languages') || 
-                                 location.pathname.includes('/emotions-wheel')}>
+        <SidebarGroup>
           <SidebarGroupLabel>Tools</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>

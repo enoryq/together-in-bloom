@@ -23,7 +23,19 @@ const Navbar = () => {
   const isMobile = useIsMobile();
   const { isAuthenticated } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { toggleSidebar } = useSidebar();
+  
+  // Since we've wrapped the entire app in SidebarProvider,
+  // useSidebar() is now safe to use, but we'll catch any potential errors
+  const sidebarContext = (() => {
+    try {
+      return useSidebar();
+    } catch (e) {
+      // Return a default object if the sidebar context isn't available
+      return { toggleSidebar: () => {} };
+    }
+  })();
+
+  const { toggleSidebar } = sidebarContext;
 
   const toolsNavItems = [
     { to: "/toolkit", text: "All Tools" },

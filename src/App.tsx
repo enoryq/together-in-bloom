@@ -54,18 +54,16 @@ const AppLayout = ({ children, requireAuth = false }: { children: React.ReactNod
 
   if (requireAuth) {
     return (
-      <SidebarProvider>
-        <div className="flex min-h-screen w-full">
-          {isAuthenticated && <AppSidebar />}
-          <div className="flex-1">
-            <Navbar />
-            <main className="container px-4 py-6">
-              <ProtectedRoute>{children}</ProtectedRoute>
-              {isMounted && isAuthenticated && <OnboardingGuide />}
-            </main>
-          </div>
+      <div className="flex min-h-screen w-full">
+        {isAuthenticated && <AppSidebar />}
+        <div className="flex-1">
+          <Navbar />
+          <main className="container px-4 py-6">
+            <ProtectedRoute>{children}</ProtectedRoute>
+            {isMounted && isAuthenticated && <OnboardingGuide />}
+          </main>
         </div>
-      </SidebarProvider>
+      </div>
     );
   }
 
@@ -83,23 +81,25 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<AppLayout><Index /></AppLayout>} />
-            <Route path="/auth" element={<AppLayout><Auth /></AppLayout>} />
-            <Route path="/dashboard" element={<AppLayout requireAuth><Dashboard /></AppLayout>} />
-            <Route path="/profile" element={<AppLayout requireAuth><Profile /></AppLayout>} />
-            <Route path="/connect" element={<AppLayout requireAuth><Connect /></AppLayout>} />
-            <Route path="/journal" element={<AppLayout requireAuth><JournalPage /></AppLayout>} />
-            <Route path="/toolkit" element={<AppLayout requireAuth><ToolkitPage /></AppLayout>} />
-            <Route path="/love-languages" element={<AppLayout requireAuth><LoveLanguagesPage /></AppLayout>} />
-            <Route path="/emotions-wheel" element={<AppLayout requireAuth><EmotionsWheelPage /></AppLayout>} />
-            <Route path="/about" element={<AppLayout><AboutPage /></AppLayout>} />
-            <Route path="*" element={<AppLayout><NotFound /></AppLayout>} />
-          </Routes>
-        </BrowserRouter>
+        <SidebarProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<AppLayout><Index /></AppLayout>} />
+              <Route path="/auth" element={<AppLayout><Auth /></AppLayout>} />
+              <Route path="/dashboard" element={<AppLayout requireAuth><Dashboard /></AppLayout>} />
+              <Route path="/profile" element={<AppLayout requireAuth><Profile /></AppLayout>} />
+              <Route path="/connect" element={<AppLayout requireAuth><Connect /></AppLayout>} />
+              <Route path="/journal" element={<AppLayout requireAuth><JournalPage /></AppLayout>} />
+              <Route path="/toolkit" element={<AppLayout requireAuth><ToolkitPage /></AppLayout>} />
+              <Route path="/love-languages" element={<AppLayout requireAuth><LoveLanguagesPage /></AppLayout>} />
+              <Route path="/emotions-wheel" element={<AppLayout requireAuth><EmotionsWheelPage /></AppLayout>} />
+              <Route path="/about" element={<AppLayout><AboutPage /></AppLayout>} />
+              <Route path="*" element={<AppLayout><NotFound /></AppLayout>} />
+            </Routes>
+          </BrowserRouter>
+        </SidebarProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
