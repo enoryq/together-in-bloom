@@ -1,73 +1,65 @@
-# Welcome to your Lovable project
+# 🌸 Together in Bloom
 
-## Project info
+**Together in Bloom** is a relationship management web app designed to help couples build, strengthen, and grow their connection through intentional interactions, emotional awareness, and shared experiences.
 
-**URL**: https://lovable.dev/projects/542eafb3-f561-4e4d-b5f8-35bc1731e7fa
+This toolkit-inspired app blends emotional check-ins, shared goals, and AI-powered support to foster deeper, healthier relationships — one day at a time.
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## 🌼 Features
 
-**Use Lovable**
+- **Daily Emotional Check-Ins**  
+  Log how you feel using the Feelings Wheel and track emotional trends over time.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/542eafb3-f561-4e4d-b5f8-35bc1731e7fa) and start prompting.
+- **Love Language Tracker**  
+  Discover your primary love languages and get personalized suggestions to meet each other's emotional needs.
 
-Changes made via Lovable will be committed automatically to this repo.
+- **Shared Goals & Milestones**  
+  Set couple goals (travel, savings, habits), track progress, and celebrate milestones together.
 
-**Use your preferred IDE**
+- **Conflict Resolution Toolkit**  
+  AI-guided tools to support calm communication, structured “I feel…” templates, and relationship ground rules.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- **Memory & Moments Journal**  
+  Capture special moments, upload photos, and create shared memories to look back on.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- **Weekly Relationship Health Reports**  
+  View emotional and activity summaries with gentle suggestions for growth.
 
-Follow these steps:
+- **Gamified Challenges**  
+  Weekly prompts and fun couple challenges to stay connected in playful ways.
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+---
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## 🌿 Tech Stack
 
-# Step 3: Install the necessary dependencies.
-npm i
+- **Frontend:** React (or Vue) + TailwindCSS  
+- **Backend:** Node.js + Express  
+- **Database:** MongoDB or PostgreSQL  
+- **Authentication:** JWT + OAuth (optional partner invite system)  
+- **AI Integration:** OpenAI (or similar) for prompts, analysis, and conflict support  
+- **Hosting:** Vercel / Netlify (frontend), Render / Heroku / Railway (backend)
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+---
+
+## 🌷 Getting Started
+
+```bash
+# Clone the repository
+
+# Install dependencies
+npm install
+
+# Run the development server
 npm run dev
-```
 
-**Edit a file directly in GitHub**
+Note: You'll need to set up a .env file with your API keys, database URL, and other secrets. See .env.example.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+🌸 Contributing
+Contributions are welcome! Feel free to open issues or submit pull requests. Whether it's fixing bugs, suggesting features, or improving documentation — your help is appreciated.
 
-**Use GitHub Codespaces**
+🌻 License
+This project is licensed under the MIT License.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/542eafb3-f561-4e4d-b5f8-35bc1731e7fa) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+💌 Inspiration
+Together in Bloom is inspired by real-world relationships, the 5 Love Languages, and the belief that love, like a garden, thrives with consistent care.
