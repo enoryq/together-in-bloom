@@ -46,11 +46,13 @@ export function usePartner() {
       const allConnections = [
         ...(userConnections || []).map(conn => ({
           ...conn,
-          status: conn.status as Partner['status'] // Type assertion
+          status: conn.status as 'pending' | 'active' | 'declined', // Explicitly use literals instead of Partner['status']
+          profile: conn.profile as Profile
         })),
         ...(partnerConnections || []).map(conn => ({
           ...conn,
-          status: conn.status as Partner['status'] // Type assertion
+          status: conn.status as 'pending' | 'active' | 'declined', // Explicitly use literals instead of Partner['status']
+          profile: conn.profile as Profile
         }))
       ];
       
