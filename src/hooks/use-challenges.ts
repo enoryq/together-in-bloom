@@ -55,8 +55,14 @@ export function useChallenges() {
 
       if (error) throw error;
       
-      setUserChallenges(data || []);
-      setActiveChallenges((data || []).filter(c => c.status === 'in_progress'));
+      // Transform data to ensure it matches the UserChallenge type
+      const typedData = (data || []).map(item => ({
+        ...item,
+        status: item.status as UserChallenge['status'] // Type assertion to ensure status is of the correct type
+      }));
+      
+      setUserChallenges(typedData);
+      setActiveChallenges(typedData.filter(c => c.status === 'in_progress'));
     } catch (error: any) {
       toast({
         title: "Error",

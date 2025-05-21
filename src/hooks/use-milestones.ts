@@ -25,14 +25,20 @@ export function useMilestones() {
 
       if (error) throw error;
       
-      setMilestones(data || []);
+      // Transform data to match Milestone type
+      const typedData = (data || []).map(item => ({
+        ...item,
+        type: item.type as Milestone['type'] // Type assertion to ensure type is of the correct type
+      }));
+      
+      setMilestones(typedData);
       
       // Calculate upcoming milestones (next 30 days)
       const today = new Date();
       const thirtyDaysFromNow = new Date();
       thirtyDaysFromNow.setDate(today.getDate() + 30);
       
-      const upcoming = (data || []).filter(milestone => {
+      const upcoming = typedData.filter(milestone => {
         const milestoneDate = new Date(milestone.date);
         return milestoneDate >= today && milestoneDate <= thirtyDaysFromNow;
       });

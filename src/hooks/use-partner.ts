@@ -20,33 +20,45 @@ export function usePartner() {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase
+      // Get connections where the current user is the initiator
+      const { data: userConnections, error: userError } = await supabase
         .from('partners')
         .select(`
           *,
-          profile:partner_id(*)
+          profile:profiles!partner_id(*)
         `)
         .eq('user_id', user.id);
 
-      if (error) throw error;
+      if (userError) throw userError;
 
       // Also get connections where the current user is the partner
-      const { data: partnerData, error: partnerError } = await supabase
+      const { data: partnerConnections, error: partnerError } = await supabase
         .from('partners')
         .select(`
           *,
-          profile:user_id(*)
+          profile:profiles!user_id(*)
         `)
         .eq('partner_id', user.id);
 
       if (partnerError) throw partnerError;
 
-      const allConnections = [...(data || []), ...(partnerData || [])];
+      // Combine connections and transform to match Partner type
+      const allConnections = [
+        ...(userConnections || []).map(conn => ({
+          ...conn,
+          status: conn.status as Partner['status'] // Type assertion
+        })),
+        ...(partnerConnections || []).map(conn => ({
+          ...conn,
+          status: conn.status as Partner['status'] // Type assertion
+        }))
+      ];
+      
       setPartnerConnections(allConnections);
 
       // Set the active partner if there's an active connection
       const activeConnection = allConnections.find(conn => conn.status === 'active');
-      if (activeConnection) {
+      if (activeConnection && activeConnection.profile) {
         setActivePartner(activeConnection.profile as Profile);
       }
     } catch (error: any) {
@@ -187,22 +199,30 @@ export function usePartner() {
     setLoadingMessages(true);
 
     try {
+      // Fixed the query to correctly specify foreign key column references
       const { data, error } = await supabase
         .from('messages')
         .select(`
           *,
-          sender:sender_id(*),
-          receiver:receiver_id(*)
+          sender:profiles!sender_id(*),
+          receiver:profiles!receiver_id(*)
         `)
         .or(`and(sender_id.eq.${user.id},receiver_id.eq.${partnerId}),and(sender_id.eq.${partnerId},receiver_id.eq.${user.id})`)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
 
-      setMessages(data || []);
+      // Transform data to ensure it matches the Message type
+      const typedMessages = (data || []).map(msg => ({
+        ...msg,
+        sender: msg.sender as Profile,
+        receiver: msg.receiver as Profile
+      }));
+
+      setMessages(typedMessages);
 
       // Mark messages as read
-      const unreadMessages = data?.filter(msg => msg.receiver_id === user.id && !msg.read) || [];
+      const unreadMessages = typedMessages.filter(msg => msg.receiver_id === user.id && !msg.read) || [];
       if (unreadMessages.length > 0) {
         const unreadIds = unreadMessages.map(msg => msg.id);
         await supabase
