@@ -46,12 +46,12 @@ export function usePartner() {
       const allConnections = [
         ...(userConnections || []).map(conn => ({
           ...conn,
-          status: conn.status as 'pending' | 'active' | 'declined', // Explicitly use literals instead of Partner['status']
+          status: conn.status as 'pending' | 'active' | 'declined',
           profile: conn.profile as Profile
         })),
         ...(partnerConnections || []).map(conn => ({
           ...conn,
-          status: conn.status as 'pending' | 'active' | 'declined', // Explicitly use literals instead of Partner['status']
+          status: conn.status as 'pending' | 'active' | 'declined',
           profile: conn.profile as Profile
         }))
       ];
@@ -201,7 +201,7 @@ export function usePartner() {
     setLoadingMessages(true);
 
     try {
-      // Fixed the query to correctly specify foreign key column references
+      // Use string literals for the query to avoid type instantiation issues
       const { data, error } = await supabase
         .from('messages')
         .select(`
@@ -217,8 +217,8 @@ export function usePartner() {
       // Transform data to ensure it matches the Message type
       const typedMessages = (data || []).map(msg => ({
         ...msg,
-        sender: msg.sender as unknown as Profile,
-        receiver: msg.receiver as unknown as Profile
+        sender: msg.sender as Profile,
+        receiver: msg.receiver as Profile
       }));
 
       setMessages(typedMessages);
