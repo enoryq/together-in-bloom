@@ -16,8 +16,11 @@ import AboutPage from "./pages/AboutPage";
 import LoveLanguagesPage from "./pages/LoveLanguagesPage";
 import EmotionsWheelPage from "./pages/EmotionsWheelPage";
 import Auth from "./pages/Auth";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import AppSidebar from "./components/AppSidebar";
+import OnboardingGuide from "./components/OnboardingGuide";
+import { SidebarProvider } from "./components/ui/sidebar";
 
 const queryClient = new QueryClient();
 
@@ -36,19 +39,33 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 };
 
 const AppLayout = ({ children, requireAuth = false }: { children: React.ReactNode; requireAuth?: boolean }) => {
+  const { isAuthenticated } = useAuth();
+  const [isMounted, setIsMounted] = useState(false);
+  
   // Scroll to top on route change
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
+  // Only show onboarding after component mounted to avoid SSR issues
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   if (requireAuth) {
     return (
-      <>
-        <Navbar />
-        <main className="min-h-[calc(100vh-4rem)]">
-          <ProtectedRoute>{children}</ProtectedRoute>
-        </main>
-      </>
+      <SidebarProvider>
+        <div className="flex min-h-screen w-full">
+          {isAuthenticated && <AppSidebar />}
+          <div className="flex-1">
+            <Navbar />
+            <main className="container px-4 py-6">
+              <ProtectedRoute>{children}</ProtectedRoute>
+              {isMounted && isAuthenticated && <OnboardingGuide />}
+            </main>
+          </div>
+        </div>
+      </SidebarProvider>
     );
   }
 

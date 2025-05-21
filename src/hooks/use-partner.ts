@@ -61,7 +61,7 @@ export function usePartner() {
       // Set the active partner if there's an active connection
       const activeConnection = allConnections.find(conn => conn.status === 'active');
       if (activeConnection && activeConnection.profile) {
-        setActivePartner(activeConnection.profile as Profile);
+        setActivePartner(activeConnection.profile);
       }
     } catch (error: any) {
       toast({
@@ -217,8 +217,8 @@ export function usePartner() {
       // Transform data to ensure it matches the Message type
       const typedMessages = (data || []).map(msg => ({
         ...msg,
-        sender: msg.sender as Profile,
-        receiver: msg.receiver as Profile
+        sender: msg.sender as unknown as Profile,
+        receiver: msg.receiver as unknown as Profile
       }));
 
       setMessages(typedMessages);
