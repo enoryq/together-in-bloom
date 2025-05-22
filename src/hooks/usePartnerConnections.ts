@@ -32,19 +32,40 @@ export function usePartnerConnections(userId: string | undefined) {
 
       if (partnerError) throw partnerError;
 
-      // Combine connections and transform to match Partner type
-      const allConnections = [
-        ...(userConnections || []).map(conn => ({
-          ...conn,
-          status: conn.status as 'pending' | 'active' | 'declined',
-          profile: conn.profile as Profile
-        })),
-        ...(partnerConnections || []).map(conn => ({
-          ...conn,
-          status: conn.status as 'pending' | 'active' | 'declined',
-          profile: conn.profile as Profile
-        }))
-      ];
+      // Explicitly type the connections to avoid deep type instantiation
+      type ConnectionWithProfile = {
+        id: string;
+        user_id: string;
+        partner_id: string;
+        status: string;
+        connection_date: string | null;
+        created_at: string;
+        profile: Profile;
+      };
+
+      // Transform the data with explicit typing
+      const userConnectionsMapped: Partner[] = (userConnections || []).map((conn: any) => ({
+        id: conn.id,
+        user_id: conn.user_id,
+        partner_id: conn.partner_id,
+        status: conn.status as 'pending' | 'active' | 'declined',
+        connection_date: conn.connection_date,
+        created_at: conn.created_at,
+        profile: conn.profile as Profile
+      }));
+
+      const partnerConnectionsMapped: Partner[] = (partnerConnections || []).map((conn: any) => ({
+        id: conn.id,
+        user_id: conn.user_id,
+        partner_id: conn.partner_id,
+        status: conn.status as 'pending' | 'active' | 'declined',
+        connection_date: conn.connection_date,
+        created_at: conn.created_at,
+        profile: conn.profile as Profile
+      }));
+
+      // Combine connections
+      const allConnections = [...userConnectionsMapped, ...partnerConnectionsMapped];
       
       setPartnerConnections(allConnections);
 
