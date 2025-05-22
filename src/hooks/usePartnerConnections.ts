@@ -32,19 +32,25 @@ export function usePartnerConnections(userId: string | undefined) {
 
       if (partnerError) throw partnerError;
 
-      // Explicitly type the connections to avoid deep type instantiation
-      type ConnectionWithProfile = {
+      // Define a simple type for the connections to avoid excessive type instantiation
+      type SimpleConnection = {
         id: string;
         user_id: string;
         partner_id: string;
         status: string;
         connection_date: string | null;
         created_at: string;
-        profile: Profile;
+        profile: {
+          id: string;
+          display_name: string;
+          avatar_url: string | null;
+          created_at: string;
+          updated_at: string;
+        };
       };
 
       // Transform the data with explicit typing
-      const userConnectionsMapped: Partner[] = (userConnections || []).map((conn: ConnectionWithProfile) => ({
+      const userConnectionsMapped: Partner[] = (userConnections || []).map((conn: SimpleConnection) => ({
         id: conn.id,
         user_id: conn.user_id,
         partner_id: conn.partner_id,
@@ -54,7 +60,7 @@ export function usePartnerConnections(userId: string | undefined) {
         profile: conn.profile
       }));
 
-      const partnerConnectionsMapped: Partner[] = (partnerConnections || []).map((conn: ConnectionWithProfile) => ({
+      const partnerConnectionsMapped: Partner[] = (partnerConnections || []).map((conn: SimpleConnection) => ({
         id: conn.id,
         user_id: conn.user_id,
         partner_id: conn.partner_id,

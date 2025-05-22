@@ -1,10 +1,11 @@
 
 import { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { 
   Heart, 
   Menu,
-  X 
+  X,
+  LogOut
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -18,11 +19,14 @@ import {
   SheetClose,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { useToast } from "@/hooks/use-toast";
 
 const Navbar = () => {
   const isMobile = useIsMobile();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, signOut } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
   
   // Since we've wrapped the entire app in SidebarProvider,
   // useSidebar() is now safe to use, but we'll catch any potential errors
@@ -49,6 +53,23 @@ const Navbar = () => {
     { to: "/connect", text: "Partner" },
     { to: "/profile", text: "Profile" },
   ];
+
+  const handleAuthAction = async () => {
+    if (isAuthenticated) {
+      try {
+        await signOut();
+        navigate("/");
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to sign out. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } else {
+      navigate("/auth");
+    }
+  };
 
   return (
     <header className="w-full sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
@@ -110,6 +131,17 @@ const Navbar = () => {
                       </NavLink>
                     </SheetClose>
                   ))}
+                  <div className="my-2 border-t"></div>
+                  <SheetClose asChild>
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start gap-2" 
+                      onClick={handleAuthAction}
+                    >
+                      <LogOut size={18} />
+                      Sign Out
+                    </Button>
+                  </SheetClose>
                 </div>
               </SheetContent>
             </Sheet>
@@ -126,9 +158,9 @@ const Navbar = () => {
             >
               About
             </NavLink>
-            <NavLink to="/auth" className="bloom-btn-primary">
-              Get Started
-            </NavLink>
+            <Button onClick={handleAuthAction} className="bloom-btn-primary">
+              {isAuthenticated ? "Sign Out" : "Sign In"}
+            </Button>
           </div>
         )}
       </div>
