@@ -44,24 +44,24 @@ export function usePartnerConnections(userId: string | undefined) {
       };
 
       // Transform the data with explicit typing
-      const userConnectionsMapped: Partner[] = (userConnections || []).map((conn: any) => ({
+      const userConnectionsMapped: Partner[] = (userConnections || []).map((conn: ConnectionWithProfile) => ({
         id: conn.id,
         user_id: conn.user_id,
         partner_id: conn.partner_id,
         status: conn.status as 'pending' | 'active' | 'declined',
         connection_date: conn.connection_date,
         created_at: conn.created_at,
-        profile: conn.profile as Profile
+        profile: conn.profile
       }));
 
-      const partnerConnectionsMapped: Partner[] = (partnerConnections || []).map((conn: any) => ({
+      const partnerConnectionsMapped: Partner[] = (partnerConnections || []).map((conn: ConnectionWithProfile) => ({
         id: conn.id,
         user_id: conn.user_id,
         partner_id: conn.partner_id,
         status: conn.status as 'pending' | 'active' | 'declined',
         connection_date: conn.connection_date,
         created_at: conn.created_at,
-        profile: conn.profile as Profile
+        profile: conn.profile
       }));
 
       // Combine connections
