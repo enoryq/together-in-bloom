@@ -7,8 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Partner, Profile, Message } from '@/types';
-import { SendHorizonal, UserPlus, UserCheck, Clock, Check, X } from 'lucide-react';
+import { Partner, Profile } from '@/types';
+import { UserPlus, UserCheck, Clock, Check, X, Calendar } from 'lucide-react';
+import MessageList from '@/components/connect/MessageList';
+import MessageInput from '@/components/connect/MessageInput';
 
 const Connect = () => {
   const { user } = useAuth();
@@ -26,7 +28,7 @@ const Connect = () => {
   } = usePartner();
   const [partnerEmail, setPartnerEmail] = useState('');
   const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
-  const [messageContent, setMessageContent] = useState('');
+  const [typingPartner, setTypingPartner] = useState<{userId: string; displayName: string; avatarUrl?: string} | null>(null);
 
   // Helper to extract profile from connection
   const getPartnerProfile = (connection: Partner): Profile => {
@@ -49,11 +51,30 @@ const Connect = () => {
   };
 
   // Handle sending a message
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (selectedPartnerId && messageContent.trim()) {
-      sendMessage(selectedPartnerId, messageContent);
-      setMessageContent('');
+  const handleSendMessage = (content: string) => {
+    if (selectedPartnerId) {
+      sendMessage(selectedPartnerId, content);
+    }
+  };
+
+  // Simulate partner typing (for demo purposes)
+  const simulatePartnerTyping = (partnerId: string) => {
+    if (partnerConnections.length > 0) {
+      const partner = partnerConnections.find(conn => 
+        (conn.user_id === partnerId || conn.partner_id === partnerId) && 
+        conn.profile
+      );
+      
+      if (partner && partner.profile) {
+        setTypingPartner({
+          userId: partnerId,
+          displayName: partner.profile.display_name,
+          avatarUrl: partner.profile.avatar_url || undefined
+        });
+        
+        // Clear after 3 seconds
+        setTimeout(() => setTypingPartner(null), 3000);
+      }
     }
   };
 
@@ -140,6 +161,31 @@ const Connect = () => {
                       <Button type="submit">Connect</Button>
                     </div>
                   </form>
+                </CardFooter>
+              </Card>
+              
+              {/* New Feature: Date Planner Card */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center">
+                    <Calendar className="h-5 w-5 mr-2 text-primary" />
+                    Date Planner
+                  </CardTitle>
+                  <CardDescription>Schedule time together</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm mb-3">
+                    Plan your next date or special moment together
+                  </p>
+                  <div className="bg-muted rounded p-3 mb-2">
+                    <p className="font-medium">Weekend Movie Night</p>
+                    <p className="text-sm text-muted-foreground">Saturday, 7:00 PM</p>
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Button variant="outline" size="sm" className="w-full">
+                    Plan New Date
+                  </Button>
                 </CardFooter>
               </Card>
             </TabsContent>
@@ -250,64 +296,22 @@ const Connect = () => {
                     <p className="text-muted-foreground">Select a partner to view your conversation</p>
                   </div>
                 </div>
-              ) : loadingMessages ? (
-                <div className="h-full flex items-center justify-center p-6">
-                  <p>Loading messages...</p>
-                </div>
               ) : (
-                <div className="h-[400px] overflow-y-auto pr-2">
-                  {messages.length === 0 ? (
-                    <div className="h-full flex items-center justify-center text-center p-6">
-                      <div>
-                        <MessageSquareHeart className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-                        <p className="text-muted-foreground">No messages yet. Send the first one!</p>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {messages.map(message => {
-                        const isCurrentUser = message.sender_id === user?.id;
-                        
-                        return (
-                          <div 
-                            key={message.id} 
-                            className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
-                          >
-                            <div 
-                              className={`max-w-[70%] p-3 rounded-lg text-sm ${
-                                isCurrentUser 
-                                  ? 'bg-primary text-primary-foreground rounded-br-none' 
-                                  : 'bg-muted rounded-bl-none'
-                              }`}
-                            >
-                              <p>{message.content}</p>
-                              <p className={`text-xs mt-1 ${isCurrentUser ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
-                                {new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </p>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
+                <MessageList 
+                  messages={messages}
+                  currentUserId={user?.id || ''}
+                  loading={loadingMessages}
+                  typingIndicator={typingPartner?.userId === selectedPartnerId ? typingPartner : undefined}
+                />
               )}
             </CardContent>
             {selectedPartnerId && (
               <CardFooter className="border-t p-3">
-                <form className="w-full" onSubmit={handleSendMessage}>
-                  <div className="flex w-full gap-2">
-                    <Input 
-                      placeholder="Type your message..." 
-                      value={messageContent}
-                      onChange={(e) => setMessageContent(e.target.value)}
-                      className="flex-1"
-                    />
-                    <Button type="submit" disabled={!messageContent.trim()}>
-                      <SendHorizonal className="h-5 w-5" />
-                    </Button>
-                  </div>
-                </form>
+                <MessageInput
+                  partnerId={selectedPartnerId}
+                  onSendMessage={handleSendMessage}
+                  className="w-full"
+                />
               </CardFooter>
             )}
           </Card>

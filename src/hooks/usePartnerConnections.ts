@@ -19,10 +19,7 @@ export function usePartnerConnections(userId: string | undefined) {
       // Get connections where the current user is the initiator
       const { data: userConnections, error: userError } = await supabase
         .from('partners')
-        .select(`
-          *,
-          profile:profiles!partner_id(*)
-        `)
+        .select('*, profile:profiles!partner_id(*)')
         .eq('user_id', userId);
 
       if (userError) throw userError;
@@ -30,10 +27,7 @@ export function usePartnerConnections(userId: string | undefined) {
       // Also get connections where the current user is the partner
       const { data: partnerConnections, error: partnerError } = await supabase
         .from('partners')
-        .select(`
-          *,
-          profile:profiles!user_id(*)
-        `)
+        .select('*, profile:profiles!user_id(*)')
         .eq('partner_id', userId);
 
       if (partnerError) throw partnerError;
@@ -93,11 +87,11 @@ export function usePartnerConnections(userId: string | undefined) {
 
       const partnerId = profiles.id;
 
-      // Check if a connection already exists
+      // Using string interpolation instead of complex object notation to avoid deep type inference
       const { data: existingConnection, error: connectionError } = await supabase
         .from('partners')
         .select('*')
-        .or(`and(user_id.eq.${userId},partner_id.eq.${partnerId}),and(user_id.eq.${partnerId},partner_id.eq.${userId})`)
+        .or(`user_id.eq.${userId},partner_id.eq.${partnerId}`)
         .maybeSingle();
 
       if (existingConnection) {

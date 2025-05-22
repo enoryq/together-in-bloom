@@ -1,9 +1,11 @@
-
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { CalendarHeart, Clock4, Heart, MessageSquareText, Trophy } from 'lucide-react';
+import RelationshipHealth from '@/components/dashboard/RelationshipHealth';
+import UpcomingMilestones from '@/components/dashboard/UpcomingMilestones';
+import DailyPrompt from '@/components/dashboard/DailyPrompt';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -15,6 +17,14 @@ const Dashboard = () => {
         Grow your relationship with these tools and features
       </p>
       
+      {/* Featured Widgets - Top Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <RelationshipHealth />
+        <UpcomingMilestones />
+        <DailyPrompt />
+      </div>
+      
+      {/* Quick Access Cards - Bottom Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Partner Connection Card */}
         <Card>
