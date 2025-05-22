@@ -1,57 +1,26 @@
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { CheckCircle2, HeartHandshake, Send, Clock, PlusCircle } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { NavLink } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Legend,
+  Tooltip
+} from "recharts";
 
-interface Question {
-  id: number;
-  text: string;
-  options: {
-    text: string;
-    language: string;
-  }[];
-}
+// Love Language types
+type LoveLanguage = 'words' | 'service' | 'gifts' | 'time' | 'touch';
 
-interface LoveAction {
-  id: string;
-  user_id: string;
-  language: string;
-  description: string;
-  completed: boolean;
-  created_at: string;
-  for_partner?: boolean;
-}
-
-interface LoveLanguageRequest {
-  id: string;
-  from_user_id: string;
-  to_user_id: string;
-  language: string;
-  message: string;
-  fulfilled: boolean;
-  created_at: string;
-}
-
-interface PartnerLanguages {
+interface LoveLanguageScore {
   words: number;
   service: number;
   gifts: number;
@@ -59,881 +28,605 @@ interface PartnerLanguages {
   touch: number;
 }
 
-const questions: Question[] = [
+interface LoveAction {
+  id?: string;
+  user_id: string;
+  language: LoveLanguage;
+  description: string;
+  completed: boolean;
+  created_at?: string;
+}
+
+// Function to get suggestions based on love language
+const getSuggestions = (language: LoveLanguage): string[] => {
+  const suggestions = {
+    words: [
+      "Write a heartfelt note expressing your appreciation",
+      "Send an unexpected text message with compliments",
+      "Tell them specifically what you love about them",
+      "Share how they've impacted your life positively",
+      "Leave sticky notes with encouraging words"
+    ],
+    service: [
+      "Take over a chore they usually do",
+      "Prepare their favorite meal",
+      "Run an errand they've been putting off",
+      "Fix something in the house that needs attention",
+      "Make their coffee/tea just how they like it"
+    ],
+    gifts: [
+      "Get them something small that shows you listened",
+      "Find an item related to their hobby or interest",
+      "Create a handmade gift with personal meaning",
+      "Surprise them with their favorite treat",
+      "Give them something practical they've mentioned needing"
+    ],
+    time: [
+      "Plan a date night focused on their interests",
+      "Set aside distraction-free time to talk",
+      "Do their favorite activity together",
+      "Take a walk and be fully present",
+      "Create a ritual of connection daily"
+    ],
+    touch: [
+      "Offer a massage after a long day",
+      "Hold hands while walking",
+      "Sit close during movies or TV time",
+      "Give a long, meaningful hug",
+      "Initiate non-sexual physical affection regularly"
+    ]
+  };
+  
+  return suggestions[language];
+};
+
+const languageColors = {
+  words: "#FF6384",
+  service: "#36A2EB",
+  gifts: "#FFCE56",
+  time: "#4BC0C0",
+  touch: "#9966FF"
+};
+
+const languageLabels = {
+  words: "Words of Affirmation",
+  service: "Acts of Service",
+  gifts: "Receiving Gifts",
+  time: "Quality Time",
+  touch: "Physical Touch"
+};
+
+const questions = [
   {
     id: 1,
-    text: "Which would you appreciate more from your partner?",
+    text: "I feel most loved when someone...",
     options: [
-      { text: "Being told how much they love and appreciate you", language: "words" },
-      { text: "Receiving a thoughtful gift", language: "gifts" },
-    ],
+      { language: 'words', text: "Tells me they appreciate me" },
+      { language: 'service', text: "Does something helpful for me" },
+      { language: 'gifts', text: "Gives me a thoughtful gift" },
+      { language: 'time', text: "Spends quality time with me" },
+      { language: 'touch', text: "Gives me a hug or holds my hand" }
+    ]
   },
   {
     id: 2,
-    text: "What makes you feel more loved?",
+    text: "When I'm having a bad day, what helps most is...",
     options: [
-      { text: "When your partner helps with tasks without being asked", language: "service" },
-      { text: "When your partner gives you their undivided attention", language: "time" },
-    ],
+      { language: 'words', text: "Hearing words of encouragement" },
+      { language: 'touch', text: "Getting a comforting hug" },
+      { language: 'time', text: "Someone sitting with me" },
+      { language: 'gifts', text: "Receiving a small gift to cheer me up" },
+      { language: 'service', text: "Someone helping with my responsibilities" }
+    ]
   },
   {
     id: 3,
-    text: "Which is more meaningful to you?",
+    text: "I feel most connected to others when...",
     options: [
-      { text: "A long hug from your partner", language: "touch" },
-      { text: "Hearing your partner say they're proud of you", language: "words" },
-    ],
+      { language: 'time', text: "We spend uninterrupted time together" },
+      { language: 'words', text: "We have deep conversations" },
+      { language: 'service', text: "They offer to help me with tasks" },
+      { language: 'touch', text: "We share physical closeness" },
+      { language: 'gifts', text: "We exchange meaningful items" }
+    ]
   },
   {
     id: 4,
-    text: "What would you prefer after a difficult day?",
+    text: "I know someone cares when they...",
     options: [
-      { text: "Your partner sitting with you and listening", language: "time" },
-      { text: "Your partner bringing you a small gift to cheer you up", language: "gifts" },
-    ],
+      { language: 'service', text: "Go out of their way to help me" },
+      { language: 'gifts', text: "Remember special occasions with gifts" },
+      { language: 'words', text: "Express their feelings verbally" },
+      { language: 'touch', text: "Show affection physically" },
+      { language: 'time', text: "Make time for me despite being busy" }
+    ]
   },
   {
     id: 5,
-    text: "Which gesture means more to you?",
+    text: "What makes me feel most appreciated is...",
     options: [
-      { text: "Your partner doing a chore you normally do", language: "service" },
-      { text: "Your partner putting their arm around you in public", language: "touch" },
-    ],
-  },
-  // Add more questions as needed
+      { language: 'gifts', text: "Receiving a thoughtful present" },
+      { language: 'touch', text: "Getting a pat on the back or a hug" },
+      { language: 'time', text: "Having someone's full attention" },
+      { language: 'words', text: "Hearing specific compliments" },
+      { language: 'service', text: "When someone helps without being asked" }
+    ]
+  }
 ];
-
-const languages = [
-  { id: "words", name: "Words of Affirmation", description: "You value verbal expressions of love and appreciation." },
-  { id: "service", name: "Acts of Service", description: "You feel loved when your partner does helpful things for you." },
-  { id: "gifts", name: "Receiving Gifts", description: "Thoughtful gifts make you feel special and remembered." },
-  { id: "time", name: "Quality Time", description: "You value focused, undivided attention from your partner." },
-  { id: "touch", name: "Physical Touch", description: "Physical contact and closeness is important to you." },
-];
-
-const languageToSuggestions = {
-  words: [
-    "Write a heartfelt note expressing your appreciation",
-    "Send encouraging text messages throughout the day",
-    "Verbally recognize their efforts and accomplishments",
-    "Tell them specific things you love about them",
-    "Express gratitude for the small things they do"
-  ],
-  service: [
-    "Take care of a chore they normally do",
-    "Prepare their favorite meal",
-    "Offer to run an errand for them",
-    "Fix something that's been bothering them",
-    "Help them with a project they're working on"
-  ],
-  gifts: [
-    "Surprise them with their favorite treat",
-    "Give them something that reminds you of a shared memory",
-    "Find a meaningful book or item related to their interests",
-    "Create a custom playlist of songs that remind you of them",
-    "Plan a small surprise that shows you were thinking of them"
-  ],
-  time: [
-    "Plan a distraction-free date night",
-    "Take a walk together with no phones",
-    "Set aside time for a deep conversation",
-    "Do an activity they enjoy, giving your full attention",
-    "Create a regular ritual of connection like morning coffee together"
-  ],
-  touch: [
-    "Hold hands while walking or watching TV",
-    "Offer a shoulder or foot massage after a long day",
-    "Give a long, meaningful hug when greeting or saying goodbye",
-    "Sit close to them during movies or when relaxing",
-    "Initiate physical affection throughout the day"
-  ]
-};
 
 const LoveLanguages = () => {
+  const { user } = useAuth();
   const { toast } = useToast();
-  const { user, isAuthenticated } = useAuth();
-  const [activeTab, setActiveTab] = useState("quiz");
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, number>>({
+  const [scores, setScores] = useState<LoveLanguageScore>({
     words: 0,
     service: 0,
     gifts: 0,
     time: 0,
-    touch: 0,
+    touch: 0
   });
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [isComplete, setIsComplete] = useState(false);
+  const [quizComplete, setQuizComplete] = useState(false);
+  const [partnerScores, setPartnerScores] = useState<LoveLanguageScore | null>(null);
+  const [hasPartner, setHasPartner] = useState(false);
   const [loveActions, setLoveActions] = useState<LoveAction[]>([]);
-  const [actionDescription, setActionDescription] = useState("");
-  const [actionLanguage, setActionLanguage] = useState("words");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [partnerLanguages, setPartnerLanguages] = useState<PartnerLanguages | null>(null);
-  const [partnerInfo, setPartnerInfo] = useState<{ id: string; name: string } | null>(null);
-  const [requests, setRequests] = useState<LoveLanguageRequest[]>([]);
-  const [newRequestMessage, setNewRequestMessage] = useState("");
-  const [newRequestLanguage, setNewRequestLanguage] = useState("words");
-  const [forPartner, setForPartner] = useState(false);
+  const [newActionDescription, setNewActionDescription] = useState("");
+  const [selectedLanguage, setSelectedLanguage] = useState<LoveLanguage>("words");
 
-  // Fetch user's love language results and saved actions
+  const totalQuestions = questions.length;
+  const progress = ((currentQuestion) / totalQuestions) * 100;
+
   useEffect(() => {
-    if (isAuthenticated && user) {
-      // Check if user has completed the quiz before
-      fetchQuizResults();
-      // Fetch saved actions
-      fetchLoveActions();
-      // Fetch partner info
-      fetchPartnerInfo();
-      // Fetch love language requests
-      fetchRequests();
-    }
-  }, [isAuthenticated, user]);
+    // Try to load saved results if quiz is complete
+    const loadSavedResults = async () => {
+      if (!user) return;
 
-  const fetchQuizResults = async () => {
-    if (!user) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('love_languages')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-        
-      if (error) throw error;
-      
-      if (data) {
-        setAnswers({
-          words: data.words || 0,
-          service: data.service || 0,
-          gifts: data.gifts || 0,
-          time: data.time || 0,
-          touch: data.touch || 0,
-        });
-        setIsComplete(true);
-      }
-    } catch (error) {
-      console.error("Error fetching quiz results:", error);
-    }
-  };
-
-  const fetchLoveActions = async () => {
-    if (!user) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('love_actions')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-        
-      if (error) throw error;
-      
-      if (data) {
-        setLoveActions(data);
-      }
-    } catch (error) {
-      console.error("Error fetching love actions:", error);
-    }
-  };
-
-  const fetchPartnerInfo = async () => {
-    if (!user) return;
-    
-    try {
-      // First get the partner relationship
-      const { data: partnerData, error: partnerError } = await supabase
-        .from('partners')
-        .select('*, profile:profiles!partner_id(*)')
-        .eq('user_id', user.id)
-        .eq('status', 'active')
-        .maybeSingle();
-      
-      if (partnerError) throw partnerError;
-      
-      if (partnerData) {
-        // Set partner info
-        setPartnerInfo({
-          id: partnerData.partner_id,
-          name: partnerData.profile?.display_name || 'Partner'
-        });
-        
-        // Fetch partner's love languages
+      try {
+        // Check if user has love language data
         const { data: languageData, error: languageError } = await supabase
-          .from('love_languages')
-          .select('*')
-          .eq('user_id', partnerData.partner_id)
-          .maybeSingle();
-          
-        if (languageError) throw languageError;
-        
-        if (languageData) {
-          setPartnerLanguages({
-            words: languageData.words || 0,
-            service: languageData.service || 0,
-            gifts: languageData.gifts || 0,
-            time: languageData.time || 0,
-            touch: languageData.touch || 0,
-          });
+          .from("profiles")
+          .select("love_languages")
+          .eq("id", user.id)
+          .single();
+
+        if (languageData?.love_languages) {
+          setScores(languageData.love_languages);
+          setQuizComplete(true);
         }
-      }
-    } catch (error) {
-      console.error("Error fetching partner info:", error);
-    }
-  };
 
-  const fetchRequests = async () => {
-    if (!user) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('love_language_requests')
-        .select('*')
-        .or(`to_user_id.eq.${user.id},from_user_id.eq.${user.id}`)
-        .order('created_at', { ascending: false });
-        
-      if (error) throw error;
-      
-      if (data) {
-        setRequests(data);
-      }
-    } catch (error) {
-      console.error("Error fetching requests:", error);
-    }
-  };
+        // Check if user has a partner
+        const { data: partnerData, error: partnerError } = await supabase
+          .from("partners")
+          .select("partner_id")
+          .eq("user_id", user.id)
+          .eq("status", "connected")
+          .single();
 
-  const handleAnswer = async () => {
-    if (selectedOption) {
-      const language = selectedOption;
-      const updatedAnswers = {
-        ...answers,
-        [language]: answers[language] + 1,
-      };
-      
-      setAnswers(updatedAnswers);
+        if (partnerData?.partner_id) {
+          setHasPartner(true);
+          // Get partner's love language data
+          const { data: partnerLanguageData } = await supabase
+            .from("profiles")
+            .select("love_languages")
+            .eq("id", partnerData.partner_id)
+            .single();
 
-      if (currentQuestion < questions.length - 1) {
-        setCurrentQuestion(currentQuestion + 1);
-        setSelectedOption(null);
-      } else {
-        // Quiz complete - calculate results
-        setIsComplete(true);
-        toast({
-          title: "Assessment Complete!",
-          description: "Your Love Language results are ready.",
-        });
-        
-        // Save results to database if user is logged in
-        if (user) {
-          try {
-            const { error } = await supabase
-              .from('love_languages')
-              .upsert({
-                user_id: user.id,
-                words: updatedAnswers.words,
-                service: updatedAnswers.service,
-                gifts: updatedAnswers.gifts,
-                time: updatedAnswers.time,
-                touch: updatedAnswers.touch,
-              }, { onConflict: 'user_id' });
-              
-            if (error) throw error;
-          } catch (error) {
-            console.error("Error saving quiz results:", error);
-            toast({
-              title: "Error",
-              description: "Failed to save your results. Please try again.",
-              variant: "destructive",
-            });
+          if (partnerLanguageData?.love_languages) {
+            setPartnerScores(partnerLanguageData.love_languages);
           }
         }
+
+        // Load love actions
+        const { data: actionsData } = await supabase
+          .from("love_actions")
+          .select("*")
+          .eq("user_id", user.id);
+
+        if (actionsData) {
+          // Cast to correct type
+          setLoveActions(actionsData as LoveAction[]);
+        }
+      } catch (error) {
+        console.error("Error loading love language data:", error);
       }
+    };
+
+    loadSavedResults();
+  }, [user]);
+
+  const handleAnswer = (language: LoveLanguage) => {
+    const updatedScores = { ...scores };
+    updatedScores[language] += 1;
+    setScores(updatedScores);
+
+    if (currentQuestion < questions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1);
+    } else {
+      // Quiz complete
+      setQuizComplete(true);
+      saveResults(updatedScores);
     }
+  };
+
+  const saveResults = async (finalScores: LoveLanguageScore) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ love_languages: finalScores })
+        .eq("id", user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Results saved!",
+        description: "Your love language preferences have been saved.",
+      });
+    } catch (error) {
+      console.error("Error saving results:", error);
+      toast({
+        title: "Error saving results",
+        description: "There was a problem saving your preferences.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const resetQuiz = () => {
+    setQuizComplete(false);
+    setCurrentQuestion(0);
+    setScores({
+      words: 0,
+      service: 0,
+      gifts: 0,
+      time: 0,
+      touch: 0
+    });
   };
 
   const addLoveAction = async () => {
-    if (!user || !actionDescription.trim()) return;
-    
-    setIsSubmitting(true);
-    
+    if (!user || !newActionDescription.trim()) return;
+
     try {
+      const newAction: LoveAction = {
+        user_id: user.id,
+        language: selectedLanguage,
+        description: newActionDescription.trim(),
+        completed: false
+      };
+
       const { data, error } = await supabase
-        .from('love_actions')
-        .insert({
-          user_id: user.id,
-          language: actionLanguage,
-          description: actionDescription,
-          completed: false,
-          for_partner: forPartner
-        })
-        .select()
-        .single();
-        
+        .from("love_actions")
+        .insert(newAction)
+        .select();
+
       if (error) throw error;
-      
-      setLoveActions([data, ...loveActions]);
-      setActionDescription("");
-      setForPartner(false);
+
+      setLoveActions([...loveActions, data[0] as LoveAction]);
+      setNewActionDescription("");
       
       toast({
-        title: "Action Added",
-        description: "Your love action has been added successfully.",
+        title: "Action added!",
+        description: "Your love language action has been added.",
       });
     } catch (error) {
-      console.error("Error adding love action:", error);
+      console.error("Error adding action:", error);
       toast({
-        title: "Error",
-        description: "Failed to add your love action. Please try again.",
+        title: "Error adding action",
+        description: "There was a problem adding your action.",
         variant: "destructive",
       });
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
-  const toggleActionCompleted = async (action: LoveAction) => {
+  const toggleActionComplete = async (id: string, completed: boolean) => {
     try {
       const { error } = await supabase
-        .from('love_actions')
-        .update({ completed: !action.completed })
-        .eq('id', action.id);
-        
+        .from("love_actions")
+        .update({ completed: !completed })
+        .eq("id", id);
+
       if (error) throw error;
-      
-      setLoveActions(loveActions.map(a => 
-        a.id === action.id ? { ...a, completed: !a.completed } : a
-      ));
-      
-      toast({
-        title: action.completed ? "Action Uncompleted" : "Action Completed",
-        description: action.completed 
-          ? "You've marked this action as not done." 
-          : "Great job! You've completed this love action.",
-      });
+
+      setLoveActions(
+        loveActions.map((action) =>
+          action.id === id ? { ...action, completed: !completed } : action
+        )
+      );
     } catch (error) {
-      console.error("Error toggling action status:", error);
+      console.error("Error updating action:", error);
       toast({
-        title: "Error",
-        description: "Failed to update the action status. Please try again.",
+        title: "Error updating action",
+        description: "There was a problem updating your action.",
         variant: "destructive",
       });
     }
   };
 
-  const sendLoveLanguageRequest = async () => {
-    if (!user || !partnerInfo || !newRequestMessage.trim()) return;
+  // Prepare chart data
+  const getPrimaryLanguage = (loveScores: LoveLanguageScore): LoveLanguage => {
+    let highest: LoveLanguage = 'words';
+    let highestScore = 0;
     
-    setIsSubmitting(true);
+    (Object.keys(loveScores) as LoveLanguage[]).forEach(lang => {
+      if (loveScores[lang] > highestScore) {
+        highest = lang;
+        highestScore = loveScores[lang];
+      }
+    });
     
-    try {
-      const { data, error } = await supabase
-        .from('love_language_requests')
-        .insert({
-          from_user_id: user.id,
-          to_user_id: partnerInfo.id,
-          language: newRequestLanguage,
-          message: newRequestMessage,
-          fulfilled: false
-        })
-        .select()
-        .single();
+    return highest;
+  };
+
+  const chartData = Object.keys(scores).map(key => ({
+    name: languageLabels[key as LoveLanguage],
+    value: scores[key as LoveLanguage],
+    color: languageColors[key as LoveLanguage]
+  }));
+
+  // Quiz content
+  const renderQuiz = () => {
+    const question = questions[currentQuestion];
+    
+    return (
+      <Card className="p-6">
+        <div className="mb-4">
+          <h3 className="text-xl font-semibold mb-2">Question {currentQuestion + 1} of {questions.length}</h3>
+          <Progress value={progress} className="h-2" />
+        </div>
         
-      if (error) throw error;
-      
-      setRequests([data, ...requests]);
-      setNewRequestMessage("");
-      
-      toast({
-        title: "Request Sent",
-        description: `You've sent a ${languages.find(l => l.id === newRequestLanguage)?.name} request to your partner.`,
-      });
-    } catch (error) {
-      console.error("Error sending request:", error);
-      toast({
-        title: "Error",
-        description: "Failed to send your request. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+        <div className="mb-6">
+          <p className="text-lg mb-4">{question.text}</p>
+          <div className="space-y-3">
+            {question.options.map((option, index) => (
+              <Button
+                key={index}
+                variant="outline"
+                className="w-full text-left justify-start py-4 h-auto"
+                onClick={() => handleAnswer(option.language)}
+              >
+                {option.text}
+              </Button>
+            ))}
+          </div>
+        </div>
+      </Card>
+    );
   };
 
-  const fulfillRequest = async (requestId: string) => {
-    try {
-      const { error } = await supabase
-        .from('love_language_requests')
-        .update({ fulfilled: true })
-        .eq('id', requestId);
-        
-      if (error) throw error;
-      
-      setRequests(requests.map(r => 
-        r.id === requestId ? { ...r, fulfilled: true } : r
-      ));
-      
-      toast({
-        title: "Request Fulfilled",
-        description: "You've marked this request as fulfilled. Thank you!",
-      });
-    } catch (error) {
-      console.error("Error fulfilling request:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update the request. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const getTopLanguages = () => {
-    const sortedLanguages = Object.entries(answers)
-      .sort((a, b) => b[1] - a[1])
-      .map(([id]) => languages.find((lang) => lang.id === id));
+  // Results content
+  const renderResults = () => {
+    const primaryLanguage = getPrimaryLanguage(scores);
+    const suggestions = getSuggestions(primaryLanguage);
     
-    return sortedLanguages;
+    return (
+      <Tabs defaultValue="results" className="w-full">
+        <TabsList className="grid grid-cols-4 mb-4">
+          <TabsTrigger value="results">Your Results</TabsTrigger>
+          <TabsTrigger value="actions" className="relative">
+            Actions
+            {loveActions.length > 0 && (
+              <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-full w-5 h-5 text-xs flex items-center justify-center">
+                {loveActions.length}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="suggestions">Suggestions</TabsTrigger>
+          <TabsTrigger value="compare" disabled={!hasPartner}>
+            Compare
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="results">
+          <Card className="p-6">
+            <h3 className="text-xl font-semibold mb-4">Your Love Language Profile</h3>
+            <div className="h-80 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={chartData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius={80}
+                    dataKey="value"
+                  >
+                    {chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Legend />
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            
+            <div className="mt-6">
+              <h4 className="text-lg font-medium mb-2">Your primary love language is:</h4>
+              <p className="text-xl font-bold text-primary">
+                {languageLabels[primaryLanguage]}
+              </p>
+              <p className="mt-4 text-muted-foreground">
+                Understanding your love language can help you communicate your needs more effectively
+                and recognize how you naturally express love to others.
+              </p>
+              <Button onClick={resetQuiz} variant="outline" className="mt-4">
+                Retake Quiz
+              </Button>
+            </div>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="actions">
+          <Card className="p-6">
+            <h3 className="text-xl font-semibold mb-4">Track Love Language Actions</h3>
+            
+            <div className="mb-6">
+              <div className="flex gap-2 mb-4">
+                <select 
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  value={selectedLanguage}
+                  onChange={(e) => setSelectedLanguage(e.target.value as LoveLanguage)}
+                >
+                  <option value="words">Words of Affirmation</option>
+                  <option value="service">Acts of Service</option>
+                  <option value="gifts">Receiving Gifts</option>
+                  <option value="time">Quality Time</option>
+                  <option value="touch">Physical Touch</option>
+                </select>
+                
+                <Button onClick={addLoveAction}>Add</Button>
+              </div>
+              
+              <input
+                type="text"
+                placeholder="Describe your act of love..."
+                className="w-full p-2 border rounded mb-4"
+                value={newActionDescription}
+                onChange={(e) => setNewActionDescription(e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-3">
+              {loveActions.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">
+                  No actions added yet. Add your first act of love!
+                </p>
+              ) : (
+                loveActions.map((action) => (
+                  <div 
+                    key={action.id} 
+                    className={`p-3 border rounded-md flex justify-between items-center ${
+                      action.completed ? "bg-muted/50" : ""
+                    }`}
+                  >
+                    <div>
+                      <p className={action.completed ? "line-through text-muted-foreground" : ""}>
+                        {action.description}
+                      </p>
+                      <span className="text-xs text-muted-foreground">
+                        {languageLabels[action.language]}
+                      </span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => toggleActionComplete(action.id!, action.completed)}
+                    >
+                      {action.completed ? "Undo" : "Complete"}
+                    </Button>
+                  </div>
+                ))
+              )}
+            </div>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="suggestions">
+          <Card className="p-6">
+            <h3 className="text-xl font-semibold mb-4">
+              Suggestions for {languageLabels[primaryLanguage]}
+            </h3>
+            
+            <ul className="space-y-3">
+              {getSuggestions(primaryLanguage).map((suggestion, index) => (
+                <li key={index} className="flex gap-3 items-start">
+                  <span className="bg-primary/10 text-primary font-medium w-6 h-6 rounded-full flex items-center justify-center shrink-0">
+                    {index + 1}
+                  </span>
+                  <p>{suggestion}</p>
+                </li>
+              ))}
+            </ul>
+            
+            <div className="mt-6 p-4 bg-muted/50 rounded-md">
+              <h4 className="font-medium mb-2">Want more personalized suggestions?</h4>
+              {hasPartner ? (
+                <p>
+                  Share your results with your partner and discover each other's love languages!
+                </p>
+              ) : (
+                <p>
+                  <NavLink to="/connect" className="text-primary hover:underline">
+                    Connect with your partner
+                  </NavLink>{" "}
+                  to share your love languages and get personalized suggestions.
+                </p>
+              )}
+            </div>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="compare">
+          <Card className="p-6">
+            {partnerScores ? (
+              <>
+                <h3 className="text-xl font-semibold mb-4">Compare Love Languages</h3>
+                
+                <div className="grid grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-medium mb-2">Your Love Languages</h4>
+                    <div className="space-y-2">
+                      {(Object.keys(scores) as LoveLanguage[]).map(lang => (
+                        <div key={lang} className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: languageColors[lang] }}></div>
+                          <span className="text-sm">{languageLabels[lang]}</span>
+                          <Progress value={(scores[lang] / 5) * 100} className="h-2 ml-2 flex-1" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-medium mb-2">Partner's Love Languages</h4>
+                    <div className="space-y-2">
+                      {(Object.keys(partnerScores) as LoveLanguage[]).map(lang => (
+                        <div key={lang} className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: languageColors[lang] }}></div>
+                          <span className="text-sm">{languageLabels[lang]}</span>
+                          <Progress value={(partnerScores[lang] / 5) * 100} className="h-2 ml-2 flex-1" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-6 p-4 bg-muted/50 rounded-md">
+                  <h4 className="font-medium mb-2">Key Insights</h4>
+                  <p>
+                    Your primary language is {languageLabels[getPrimaryLanguage(scores)]}, while your partner's is {languageLabels[getPrimaryLanguage(partnerScores)]}.
+                  </p>
+                  <p className="mt-2">
+                    Try to express love in ways that match your partner's love language, even if it's different from yours.
+                  </p>
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-8">
+                <p>Your partner hasn't completed the love languages quiz yet.</p>
+                <p className="text-muted-foreground mt-2">
+                  Encourage them to take the quiz to see your comparison.
+                </p>
+              </div>
+            )}
+          </Card>
+        </TabsContent>
+      </Tabs>
+    );
   };
-
-  const getPrimaryLanguage = () => {
-    const sortedLanguages = Object.entries(answers)
-      .sort((a, b) => b[1] - a[1]);
-    return sortedLanguages.length > 0 ? sortedLanguages[0][0] : "words";
-  };
-
-  const getSuggestionsByLanguage = (languageId: string) => {
-    return languageToSuggestions[languageId as keyof typeof languageToSuggestions] || [];
-  };
-
-  const progress = ((currentQuestion + 1) / questions.length) * 100;
 
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-      <TabsList className="grid grid-cols-4 mb-4">
-        <TabsTrigger value="quiz">Assessment</TabsTrigger>
-        <TabsTrigger value="actions">Actions</TabsTrigger>
-        <TabsTrigger value="comparison" disabled={!partnerLanguages}>Compare</TabsTrigger>
-        <TabsTrigger value="requests" disabled={!partnerInfo}>Requests</TabsTrigger>
-      </TabsList>
+    <div className="max-w-3xl mx-auto">
+      <h2 className="text-2xl font-bold mb-6">The 5 Love Languages</h2>
       
-      <TabsContent value="quiz">
-        <Card className="w-full">
-          <CardHeader>
-            <CardTitle>5 Love Languages Assessment</CardTitle>
-            <CardDescription>
-              Discover how you prefer to give and receive love
-            </CardDescription>
-            {!isComplete && (
-              <div className="mt-2">
-                <Progress value={progress} className="h-2" />
-                <p className="text-sm text-muted-foreground mt-1">
-                  Question {currentQuestion + 1} of {questions.length}
-                </p>
-              </div>
-            )}
-          </CardHeader>
-          <CardContent>
-            {!isComplete ? (
-              <div className="space-y-6">
-                <h3 className="text-xl font-medium">{questions[currentQuestion].text}</h3>
-                <RadioGroup value={selectedOption || ""} onValueChange={setSelectedOption}>
-                  {questions[currentQuestion].options.map((option, index) => (
-                    <div key={index} className="flex items-start space-x-2 p-3 rounded-lg border hover:bg-muted/50 transition-colors">
-                      <RadioGroupItem value={option.language} id={`option-${index}`} />
-                      <Label htmlFor={`option-${index}`} className="text-base font-normal">
-                        {option.text}
-                      </Label>
-                    </div>
-                  ))}
-                </RadioGroup>
-                <Button 
-                  onClick={handleAnswer} 
-                  disabled={!selectedOption}
-                  className="w-full bloom-btn-primary"
-                >
-                  {currentQuestion < questions.length - 1 ? "Next Question" : "Complete Assessment"}
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                <h3 className="text-xl font-medium">Your Love Languages</h3>
-                <div className="space-y-4">
-                  {getTopLanguages().map((language, index) => (
-                    language && (
-                      <div key={language.id} className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium">{index + 1}. {language.name}</span>
-                          <span className="text-sm">{Math.round((answers[language.id] / questions.length) * 100)}%</span>
-                        </div>
-                        <Progress value={(answers[language.id] / questions.length) * 100} className="h-2" />
-                        <p className="text-sm text-muted-foreground">{language.description}</p>
-                      </div>
-                    )
-                  ))}
-                </div>
-                
-                {/* Suggested actions section */}
-                <div className="pt-4 border-t">
-                  <h4 className="text-lg font-medium mb-3">Suggested Actions for Your Primary Language</h4>
-                  <div className="bg-muted/30 rounded-lg p-4">
-                    <h5 className="font-medium mb-2">
-                      {languages.find(l => l.id === getPrimaryLanguage())?.name}:
-                    </h5>
-                    <ul className="space-y-2 list-disc pl-5">
-                      {getSuggestionsByLanguage(getPrimaryLanguage()).map((suggestion, i) => (
-                        <li key={i}>{suggestion}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-                
-                <Button 
-                  onClick={() => {
-                    // Reset the quiz
-                    setCurrentQuestion(0);
-                    setAnswers({
-                      words: 0,
-                      service: 0,
-                      gifts: 0,
-                      time: 0,
-                      touch: 0,
-                    });
-                    setSelectedOption(null);
-                    setIsComplete(false);
-                  }}
-                  variant="outline"
-                  className="w-full"
-                >
-                  Retake Assessment
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </TabsContent>
+      <div className="mb-6">
+        <p className="text-muted-foreground">
+          The concept of Love Languages, developed by Dr. Gary Chapman, suggests that people express and experience love in different ways. Understanding your own and your partner's primary love language can significantly improve how you communicate and show affection.
+        </p>
+      </div>
       
-      <TabsContent value="actions">
-        <Card className="w-full">
-          <CardHeader>
-            <CardTitle>Love Language Actions</CardTitle>
-            <CardDescription>
-              Record and track acts of love based on love languages
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isAuthenticated ? (
-              <>
-                <div className="space-y-4 mb-8">
-                  <h3 className="text-lg font-medium">Add a New Love Action</h3>
-                  <div className="grid gap-4">
-                    <div>
-                      <Label htmlFor="actionLanguage">Love Language</Label>
-                      <select 
-                        id="actionLanguage"
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                        value={actionLanguage}
-                        onChange={(e) => setActionLanguage(e.target.value)}
-                      >
-                        {languages.map(lang => (
-                          <option key={lang.id} value={lang.id}>{lang.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <Label htmlFor="actionDescription">Description</Label>
-                      <Textarea 
-                        id="actionDescription" 
-                        placeholder="Describe the love action..." 
-                        value={actionDescription}
-                        onChange={(e) => setActionDescription(e.target.value)}
-                      />
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <input 
-                        type="checkbox" 
-                        id="forPartner" 
-                        checked={forPartner}
-                        onChange={() => setForPartner(!forPartner)} 
-                        className="h-4 w-4 rounded border-gray-300" 
-                      />
-                      <Label htmlFor="forPartner">This is an action I'll do for my partner</Label>
-                    </div>
-                    <Button 
-                      onClick={addLoveAction} 
-                      disabled={!actionDescription.trim() || isSubmitting}
-                      className="bloom-btn-primary"
-                    >
-                      {isSubmitting ? "Adding..." : "Add Action"}
-                    </Button>
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Your Love Actions</h3>
-                  {loveActions.length === 0 ? (
-                    <div className="text-center py-6 text-muted-foreground">
-                      <p>You haven't added any love actions yet.</p>
-                      <p>Start tracking how you express and receive love!</p>
-                    </div>
-                  ) : (
-                    <div className="grid gap-4">
-                      {loveActions.map((action) => (
-                        <div 
-                          key={action.id} 
-                          className={`p-4 rounded-lg border flex items-start justify-between ${
-                            action.completed ? "bg-primary/5 border-primary/20" : ""
-                          }`}
-                        >
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm px-2 py-1 bg-primary/10 text-primary rounded-full">
-                                {languages.find(l => l.id === action.language)?.name}
-                              </span>
-                              {action.for_partner && (
-                                <span className="text-xs px-2 py-0.5 bg-secondary/10 text-secondary rounded-full">
-                                  For Partner
-                                </span>
-                              )}
-                            </div>
-                            <p className={action.completed ? "line-through text-muted-foreground" : ""}>
-                              {action.description}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(action.created_at).toLocaleDateString()}
-                            </p>
-                          </div>
-                          <Button 
-                            variant={action.completed ? "outline" : "default"} 
-                            size="sm"
-                            onClick={() => toggleActionCompleted(action)}
-                          >
-                            {action.completed ? "Undo" : "Complete"}
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </>
-            ) : (
-              <div className="text-center py-12">
-                <p className="mb-4">Please sign in to track your love actions.</p>
-                <Button asChild>
-                  <NavLink to="/auth">Sign In</NavLink>
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </TabsContent>
-      
-      <TabsContent value="comparison">
-        <Card className="w-full">
-          <CardHeader>
-            <CardTitle>Compare Love Languages</CardTitle>
-            <CardDescription>
-              See how your love languages compare with your partner's
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isAuthenticated && partnerLanguages && partnerInfo ? (
-              <div className="space-y-6">
-                {languages.map(language => {
-                  const yourScore = Math.round((answers[language.id] / questions.length) * 100);
-                  const partnerScore = partnerLanguages 
-                    ? Math.round((partnerLanguages[language.id as keyof typeof partnerLanguages] / questions.length) * 100) 
-                    : 0;
-                  
-                  return (
-                    <div key={language.id} className="space-y-4">
-                      <h3 className="text-lg font-medium">{language.name}</h3>
-                      <div className="grid grid-cols-[1fr_auto_1fr] gap-2 items-center">
-                        <div>
-                          <p className="text-sm mb-1">You: {yourScore}%</p>
-                          <Progress value={yourScore} className="h-3 bg-muted" />
-                        </div>
-                        <HeartHandshake className="h-5 w-5 text-primary mx-2" />
-                        <div>
-                          <p className="text-sm mb-1">{partnerInfo.name}: {partnerScore}%</p>
-                          <Progress value={partnerScore} className="h-3 bg-secondary/30" />
-                        </div>
-                      </div>
-                      {Math.abs(yourScore - partnerScore) > 30 && (
-                        <div className="bg-muted/30 p-3 rounded-lg text-sm">
-                          <p className="font-medium">Note:</p>
-                          <p>
-                            {yourScore > partnerScore 
-                              ? `You value ${language.name} more than your partner. Consider communicating how important this is to you.`
-                              : `Your partner values ${language.name} more than you. Consider making extra effort in this area.`
-                            }
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-                
-                <div className="pt-4 border-t">
-                  <h3 className="text-lg font-medium mb-3">What This Means</h3>
-                  <p className="mb-3">
-                    Understanding where you align and differ helps communicate love more effectively.
-                    Focus on expressing love in ways that resonate with your partner, while also
-                    sharing what makes you feel most loved.
-                  </p>
-                  <div className="bg-primary/5 p-4 rounded-lg">
-                    <h4 className="font-medium">Tips for Successful Communication:</h4>
-                    <ul className="list-disc pl-5 mt-2 space-y-1">
-                      <li>Discuss your results together openly</li>
-                      <li>Schedule regular check-ins about emotional needs</li>
-                      <li>Be willing to step outside your comfort zone</li>
-                      <li>Appreciate efforts even when they don't match your primary language</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <p className="mb-2">No partner comparison available.</p>
-                <p className="text-sm text-muted-foreground mb-4">
-                  {isAuthenticated 
-                    ? "Connect with your partner to see their love languages." 
-                    : "Please sign in and connect with your partner to enable this feature."
-                  }
-                </p>
-                {!isAuthenticated && (
-                  <Button asChild>
-                    <NavLink to="/auth">Sign In</NavLink>
-                  </Button>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </TabsContent>
-      
-      <TabsContent value="requests">
-        <Card className="w-full">
-          <CardHeader>
-            <CardTitle>Love Language Requests</CardTitle>
-            <CardDescription>
-              Exchange specific love requests with your partner
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isAuthenticated && partnerInfo ? (
-              <>
-                <div className="space-y-4 mb-8">
-                  <h3 className="text-lg font-medium">Send a Request to {partnerInfo.name}</h3>
-                  <div className="grid gap-4">
-                    <div>
-                      <Label htmlFor="requestLanguage">Love Language</Label>
-                      <select 
-                        id="requestLanguage"
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                        value={newRequestLanguage}
-                        onChange={(e) => setNewRequestLanguage(e.target.value)}
-                      >
-                        {languages.map(lang => (
-                          <option key={lang.id} value={lang.id}>{lang.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <Label htmlFor="requestMessage">Message</Label>
-                      <Textarea 
-                        id="requestMessage" 
-                        placeholder="What would make you feel loved?" 
-                        value={newRequestMessage}
-                        onChange={(e) => setNewRequestMessage(e.target.value)}
-                      />
-                    </div>
-                    <Button 
-                      onClick={sendLoveLanguageRequest} 
-                      disabled={!newRequestMessage.trim() || isSubmitting}
-                      className="bloom-btn-primary flex gap-2 items-center"
-                    >
-                      <Send className="h-4 w-4" />
-                      {isSubmitting ? "Sending..." : "Send Request"}
-                    </Button>
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Love Requests</h3>
-                  {requests.length === 0 ? (
-                    <div className="text-center py-6 text-muted-foreground">
-                      <p>No love language requests yet.</p>
-                      <p>Send a request to let your partner know what would make you feel loved!</p>
-                    </div>
-                  ) : (
-                    <div className="grid gap-4">
-                      {requests.map((request) => {
-                        const isIncoming = request.to_user_id === user?.id;
-                        return (
-                          <div 
-                            key={request.id} 
-                            className={`p-4 rounded-lg border ${
-                              request.fulfilled ? "bg-primary/5 border-primary/20" : ""
-                            } ${isIncoming ? "border-l-4 border-l-secondary" : ""}`}
-                          >
-                            <div className="flex justify-between items-start">
-                              <div className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-sm px-2 py-1 bg-primary/10 text-primary rounded-full">
-                                    {languages.find(l => l.id === request.language)?.name}
-                                  </span>
-                                  <span className="text-xs px-2 py-0.5 rounded-full bg-secondary/10 text-secondary">
-                                    {isIncoming ? "From Partner" : "To Partner"}
-                                  </span>
-                                  {request.fulfilled && (
-                                    <span className="text-xs px-2 py-0.5 rounded-full bg-green-500/10 text-green-600 flex items-center gap-1">
-                                      <CheckCircle2 className="h-3 w-3" /> Fulfilled
-                                    </span>
-                                  )}
-                                </div>
-                                <p>{request.message}</p>
-                                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                  <Clock className="h-3 w-3" />
-                                  {new Date(request.created_at).toLocaleDateString()}
-                                </p>
-                              </div>
-                              {isIncoming && !request.fulfilled && (
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  onClick={() => fulfillRequest(request.id)}
-                                >
-                                  Mark Fulfilled
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </>
-            ) : (
-              <div className="text-center py-12">
-                <p className="mb-4">
-                  {isAuthenticated 
-                    ? "Connect with a partner to exchange love language requests." 
-                    : "Please sign in and connect with a partner to use this feature."
-                  }
-                </p>
-                {!isAuthenticated ? (
-                  <Button asChild>
-                    <NavLink to="/auth">Sign In</NavLink>
-                  </Button>
-                ) : (
-                  <Button asChild>
-                    <NavLink to="/connect">Connect with Partner</NavLink>
-                  </Button>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </TabsContent>
-    </Tabs>
+      {quizComplete ? renderResults() : renderQuiz()}
+    </div>
   );
 };
 
