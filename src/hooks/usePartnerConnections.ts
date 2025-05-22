@@ -74,7 +74,7 @@ export function usePartnerConnections(userId: string | undefined) {
         .from('profiles')
         .select('*')
         .eq('email', partnerEmail)
-        .single();
+        .maybeSingle();
 
       if (profileError) {
         toast({
@@ -85,13 +85,22 @@ export function usePartnerConnections(userId: string | undefined) {
         return;
       }
 
+      if (!profiles) {
+        toast({
+          title: "User not found",
+          description: "No user with that email address exists",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const partnerId = profiles.id;
 
-      // Using string interpolation instead of complex object notation to avoid deep type inference
+      // Check for existing connections
       const { data: existingConnection, error: connectionError } = await supabase
         .from('partners')
         .select('*')
-        .or(`user_id.eq.${userId},partner_id.eq.${partnerId}`)
+        .or(`and(user_id.eq.${userId},partner_id.eq.${partnerId}),and(user_id.eq.${partnerId},partner_id.eq.${userId})`)
         .maybeSingle();
 
       if (existingConnection) {

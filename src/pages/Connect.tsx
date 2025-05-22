@@ -2,15 +2,10 @@
 import { useState } from 'react';
 import { usePartner } from '@/hooks/use-partner';
 import { useAuth } from '@/contexts/AuthContext';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Partner, Profile } from '@/types';
-import { UserPlus, UserCheck, Clock, Check, X, Calendar } from 'lucide-react';
-import MessageList from '@/components/connect/MessageList';
-import MessageInput from '@/components/connect/MessageInput';
+import ConnectionTab from '@/components/connect/ConnectionTab';
+import RequestsTab from '@/components/connect/RequestsTab';
+import MessageArea from '@/components/connect/MessageArea';
 
 const Connect = () => {
   const { user } = useAuth();
@@ -29,11 +24,6 @@ const Connect = () => {
   const [partnerEmail, setPartnerEmail] = useState('');
   const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
   const [typingPartner, setTypingPartner] = useState<{userId: string; displayName: string; avatarUrl?: string} | null>(null);
-
-  // Helper to extract profile from connection
-  const getPartnerProfile = (connection: Partner): Profile => {
-    return connection.profile as Profile;
-  };
 
   // Handle partner request submission
   const handleSendRequest = (e: React.FormEvent) => {
@@ -54,6 +44,7 @@ const Connect = () => {
   const handleSendMessage = (content: string) => {
     if (selectedPartnerId) {
       sendMessage(selectedPartnerId, content);
+      simulatePartnerTyping(selectedPartnerId);
     }
   };
 
@@ -106,235 +97,42 @@ const Connect = () => {
               <TabsTrigger value="requests">Requests</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="connections" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-xl">Your Partner</CardTitle>
-                  <CardDescription>
-                    {activeConnections.length > 0 
-                      ? "Message your connected partner" 
-                      : "You don't have any active connections yet"}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {activeConnections.length === 0 ? (
-                    <div className="text-center py-6">
-                      <UserPlus className="mx-auto h-12 w-12 text-muted-foreground mb-2" />
-                      <p className="text-muted-foreground">Send a connection request to get started</p>
-                    </div>
-                  ) : (
-                    activeConnections.map(connection => {
-                      const profile = getPartnerProfile(connection);
-                      const isSelected = selectedPartnerId === profile.id;
-                      
-                      return (
-                        <div 
-                          key={connection.id} 
-                          className={`p-3 rounded-lg flex items-center gap-3 cursor-pointer ${
-                            isSelected ? 'bg-primary/10' : 'hover:bg-muted'
-                          }`}
-                          onClick={() => handleSelectPartner(profile.id)}
-                        >
-                          <Avatar>
-                            <AvatarImage src={profile.avatar_url || ''} />
-                            <AvatarFallback>{profile.display_name.charAt(0).toUpperCase()}</AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1">
-                            <p className="font-medium">{profile.display_name}</p>
-                            <p className="text-sm text-muted-foreground">Connected</p>
-                          </div>
-                          {isSelected && <Check className="h-4 w-4 text-primary" />}
-                        </div>
-                      );
-                    })
-                  )}
-                </CardContent>
-                <CardFooter>
-                  <form className="w-full" onSubmit={handleSendRequest}>
-                    <div className="flex w-full gap-2">
-                      <Input 
-                        placeholder="partner@email.com" 
-                        value={partnerEmail}
-                        onChange={(e) => setPartnerEmail(e.target.value)}
-                        className="flex-1"
-                      />
-                      <Button type="submit">Connect</Button>
-                    </div>
-                  </form>
-                </CardFooter>
-              </Card>
-              
-              {/* New Feature: Date Planner Card */}
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center">
-                    <Calendar className="h-5 w-5 mr-2 text-primary" />
-                    Date Planner
-                  </CardTitle>
-                  <CardDescription>Schedule time together</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm mb-3">
-                    Plan your next date or special moment together
-                  </p>
-                  <div className="bg-muted rounded p-3 mb-2">
-                    <p className="font-medium">Weekend Movie Night</p>
-                    <p className="text-sm text-muted-foreground">Saturday, 7:00 PM</p>
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button variant="outline" size="sm" className="w-full">
-                    Plan New Date
-                  </Button>
-                </CardFooter>
-              </Card>
+            <TabsContent value="connections">
+              <ConnectionTab
+                activeConnections={activeConnections}
+                selectedPartnerId={selectedPartnerId}
+                onSelectPartner={handleSelectPartner}
+                onSendRequest={handleSendRequest}
+                partnerEmail={partnerEmail}
+                onPartnerEmailChange={(e) => setPartnerEmail(e.target.value)}
+              />
             </TabsContent>
             
-            <TabsContent value="requests" className="space-y-6">
-              {/* Incoming Requests */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-xl">Incoming Requests</CardTitle>
-                  <CardDescription>
-                    People who want to connect with you
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {incomingRequests.length === 0 ? (
-                    <p className="text-muted-foreground text-center py-4">No pending requests</p>
-                  ) : (
-                    <div className="space-y-3">
-                      {incomingRequests.map(request => {
-                        const profile = getPartnerProfile(request);
-                        
-                        return (
-                          <div key={request.id} className="flex items-center justify-between p-3 border rounded-lg">
-                            <div className="flex items-center gap-3">
-                              <Avatar>
-                                <AvatarImage src={profile.avatar_url || ''} />
-                                <AvatarFallback>{profile.display_name.charAt(0).toUpperCase()}</AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <p className="font-medium">{profile.display_name}</p>
-                                <p className="text-sm text-muted-foreground">Wants to connect</p>
-                              </div>
-                            </div>
-                            <div className="flex gap-2">
-                              <Button variant="outline" size="sm" onClick={() => acceptPartnerRequest(request.id)}>
-                                <Check className="h-4 w-4 mr-1" /> Accept
-                              </Button>
-                              <Button variant="outline" size="sm" onClick={() => declinePartnerRequest(request.id)}>
-                                <X className="h-4 w-4 mr-1" /> Decline
-                              </Button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-              
-              {/* Outgoing Requests */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-xl">Sent Requests</CardTitle>
-                  <CardDescription>
-                    Pending connection requests you've sent
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {outgoingRequests.length === 0 ? (
-                    <p className="text-muted-foreground text-center py-4">No pending requests</p>
-                  ) : (
-                    <div className="space-y-3">
-                      {outgoingRequests.map(request => {
-                        const profile = getPartnerProfile(request);
-                        
-                        return (
-                          <div key={request.id} className="flex items-center justify-between p-3 border rounded-lg">
-                            <div className="flex items-center gap-3">
-                              <Avatar>
-                                <AvatarImage src={profile.avatar_url || ''} />
-                                <AvatarFallback>{profile.display_name.charAt(0).toUpperCase()}</AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <p className="font-medium">{profile.display_name}</p>
-                                <p className="text-sm text-muted-foreground">
-                                  <Clock className="h-3 w-3 inline mr-1" />
-                                  Awaiting response
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+            <TabsContent value="requests">
+              <RequestsTab
+                incomingRequests={incomingRequests}
+                outgoingRequests={outgoingRequests}
+                onAcceptRequest={acceptPartnerRequest}
+                onDeclineRequest={declinePartnerRequest}
+              />
             </TabsContent>
           </Tabs>
         </div>
 
         <div className="lg:col-span-2">
-          <Card className="h-full flex flex-col">
-            <CardHeader>
-              <CardTitle className="text-xl">Messages</CardTitle>
-              <CardDescription>
-                {selectedPartnerId 
-                  ? `Conversation with ${activeConnections.find(conn => 
-                      getPartnerProfile(conn).id === selectedPartnerId)?.profile?.display_name}`
-                  : "Select a partner to start messaging"}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex-1 overflow-hidden">
-              {!selectedPartnerId ? (
-                <div className="h-full flex items-center justify-center text-center p-6">
-                  <div>
-                    <MessageSquareHeart className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-                    <p className="text-muted-foreground">Select a partner to view your conversation</p>
-                  </div>
-                </div>
-              ) : (
-                <MessageList 
-                  messages={messages}
-                  currentUserId={user?.id || ''}
-                  loading={loadingMessages}
-                  typingIndicator={typingPartner?.userId === selectedPartnerId ? typingPartner : undefined}
-                />
-              )}
-            </CardContent>
-            {selectedPartnerId && (
-              <CardFooter className="border-t p-3">
-                <MessageInput
-                  partnerId={selectedPartnerId}
-                  onSendMessage={handleSendMessage}
-                  className="w-full"
-                />
-              </CardFooter>
-            )}
-          </Card>
+          <MessageArea
+            selectedPartnerId={selectedPartnerId}
+            messages={messages}
+            loadingMessages={loadingMessages}
+            currentUserId={user?.id || ''}
+            typingPartner={typingPartner || undefined}
+            activeConnections={activeConnections}
+            onSendMessage={handleSendMessage}
+          />
         </div>
       </div>
     </div>
   );
 };
-
-const MessageSquareHeart = ({ className }: { className?: string }) => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    className={className}
-  >
-    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-    <path d="M14.8 7.5a1 1 0 0 0-1.4 0l-1.9 2-1.9-2a1 1 0 1 0-1.4 1.4l1.9 2-1.9 2a1 1 0 0 0 1.4 1.4l1.9-2 1.9 2a1 1 0 0 0 1.4-1.4l-1.9-2 1.9-2a1 1 0 0 0 0-1.4z" />
-  </svg>
-);
 
 export default Connect;
