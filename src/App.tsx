@@ -15,6 +15,7 @@ import ToolkitPage from "./pages/ToolkitPage";
 import AboutPage from "./pages/AboutPage";
 import LoveLanguagesPage from "./pages/LoveLanguagesPage";
 import EmotionsWheelPage from "./pages/EmotionsWheelPage";
+import AiCompanionPage from "./pages/AiCompanionPage";
 import Auth from "./pages/Auth";
 import { useEffect, useState } from "react";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
@@ -95,6 +96,7 @@ const App = () => (
               <Route path="/toolkit" element={<AppLayout requireAuth><ToolkitPage /></AppLayout>} />
               <Route path="/love-languages" element={<AppLayout requireAuth><LoveLanguagesPage /></AppLayout>} />
               <Route path="/emotions-wheel" element={<AppLayout requireAuth><EmotionsWheelPage /></AppLayout>} />
+              <Route path="/ai-companion" element={<AppLayout requireAuth><AiCompanionPage /></AppLayout>} />
               <Route path="/about" element={<AppLayout><AboutPage /></AppLayout>} />
               <Route path="*" element={<AppLayout><NotFound /></AppLayout>} />
             </Routes>

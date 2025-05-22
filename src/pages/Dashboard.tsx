@@ -1,8 +1,9 @@
+
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { CalendarHeart, Clock4, Heart, MessageSquareText, Trophy } from 'lucide-react';
+import { CalendarHeart, Clock4, Heart, MessageSquareText, Trophy, Bot } from 'lucide-react';
 import RelationshipHealth from '@/components/dashboard/RelationshipHealth';
 import UpcomingMilestones from '@/components/dashboard/UpcomingMilestones';
 import DailyPrompt from '@/components/dashboard/DailyPrompt';
@@ -62,6 +63,27 @@ const Dashboard = () => {
           <CardFooter>
             <Button variant="outline" className="w-full" asChild>
               <Link to="/connect">View Messages</Link>
+            </Button>
+          </CardFooter>
+        </Card>
+
+        {/* AI Companion Card - New */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center">
+              <Bot className="h-5 w-5 mr-2 text-primary" />
+              AI Relationship Companion
+            </CardTitle>
+            <CardDescription>Get personalized relationship guidance</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm">
+              Chat with your AI companion for advice, exercises, and insights tailored to your relationship.
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Button variant="outline" className="w-full" asChild>
+              <Link to="/ai-companion">Chat with AI</Link>
             </Button>
           </CardFooter>
         </Card>

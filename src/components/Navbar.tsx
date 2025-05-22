@@ -5,7 +5,8 @@ import {
   Heart, 
   Menu,
   X,
-  LogOut
+  LogOut,
+  Bot
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -45,6 +46,7 @@ const Navbar = () => {
     { to: "/toolkit", text: "All Tools" },
     { to: "/love-languages", text: "Love Languages" },
     { to: "/emotions-wheel", text: "Emotions Wheel" },
+    { to: "/ai-companion", text: "AI Companion" },
   ];
 
   const mainNavItems = [
