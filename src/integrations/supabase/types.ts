@@ -79,6 +79,33 @@ export type Database = {
           },
         ]
       }
+      love_actions: {
+        Row: {
+          completed: boolean | null
+          created_at: string | null
+          description: string
+          id: string
+          language: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean | null
+          created_at?: string | null
+          description: string
+          id?: string
+          language: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean | null
+          created_at?: string | null
+          description?: string
+          id?: string
+          language?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string
@@ -210,6 +237,7 @@ export type Database = {
           created_at: string
           display_name: string
           id: string
+          love_languages: Json | null
           updated_at: string
         }
         Insert: {
@@ -217,6 +245,7 @@ export type Database = {
           created_at?: string
           display_name: string
           id: string
+          love_languages?: Json | null
           updated_at?: string
         }
         Update: {
@@ -224,6 +253,7 @@ export type Database = {
           created_at?: string
           display_name?: string
           id?: string
+          love_languages?: Json | null
           updated_at?: string
         }
         Relationships: []

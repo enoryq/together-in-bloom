@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { NavLink } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -186,10 +185,10 @@ const LoveLanguages = () => {
           .from("profiles")
           .select("love_languages")
           .eq("id", user.id)
-          .single();
+          .maybeSingle();
 
         if (languageData?.love_languages) {
-          setScores(languageData.love_languages);
+          setScores(languageData.love_languages as LoveLanguageScore);
           setQuizComplete(true);
         }
 
@@ -199,7 +198,7 @@ const LoveLanguages = () => {
           .select("partner_id")
           .eq("user_id", user.id)
           .eq("status", "connected")
-          .single();
+          .maybeSingle();
 
         if (partnerData?.partner_id) {
           setHasPartner(true);
@@ -208,10 +207,10 @@ const LoveLanguages = () => {
             .from("profiles")
             .select("love_languages")
             .eq("id", partnerData.partner_id)
-            .single();
+            .maybeSingle();
 
           if (partnerLanguageData?.love_languages) {
-            setPartnerScores(partnerLanguageData.love_languages);
+            setPartnerScores(partnerLanguageData.love_languages as LoveLanguageScore);
           }
         }
 
@@ -383,7 +382,7 @@ const LoveLanguages = () => {
                 key={index}
                 variant="outline"
                 className="w-full text-left justify-start py-4 h-auto"
-                onClick={() => handleAnswer(option.language)}
+                onClick={() => handleAnswer(option.language as LoveLanguage)}
               >
                 {option.text}
               </Button>
@@ -547,9 +546,9 @@ const LoveLanguages = () => {
                 </p>
               ) : (
                 <p>
-                  <NavLink to="/connect" className="text-primary hover:underline">
+                  <Link to="/connect" className="text-primary hover:underline">
                     Connect with your partner
-                  </NavLink>{" "}
+                  </Link>{" "}
                   to share your love languages and get personalized suggestions.
                 </p>
               )}
