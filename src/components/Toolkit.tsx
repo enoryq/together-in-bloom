@@ -127,6 +127,18 @@ const toolCategories: ToolCategory[] = [
           "Day 6: Share your favorite quality about your relationship",
           "Day 7: Create a vision statement for your future together"
         ]
+      },
+      {
+        id: "bloom",
+        title: "Chat with Bloom",
+        description: "Get AI-powered relationship advice",
+        content: [
+          "Ask Bloom about communication strategies for difficult conversations",
+          "Get personalized date night ideas based on your relationship dynamics",
+          "Explore conflict resolution techniques with Bloom's guidance",
+          "Discuss relationship goals and get actionable steps to achieve them",
+          "Share concerns and receive compassionate, evidence-based advice"
+        ]
       }
     ]
   }

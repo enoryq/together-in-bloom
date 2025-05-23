@@ -20,7 +20,7 @@ const AiCompanion = () => {
     {
       id: '1',
       role: 'assistant',
-      content: "Hello! I'm your AI relationship companion. I'm here to help you navigate your relationship journey with compassionate guidance and practical advice. What's on your mind today?",
+      content: "Hello! I'm Bloom, your AI relationship companion. I'm here to help you navigate your relationship journey with compassionate guidance and practical advice. What's on your mind today?",
       timestamp: new Date()
     }
   ]);
@@ -88,7 +88,7 @@ const AiCompanion = () => {
         <div className="p-4 border-b bg-gradient-to-r from-bloom-pink to-bloom-lavender">
           <div className="flex items-center gap-2">
             <Heart className="w-5 h-5 text-white" />
-            <h3 className="font-semibold text-white">AI Relationship Companion</h3>
+            <h3 className="font-semibold text-white">Bloom - AI Companion</h3>
           </div>
           <p className="text-sm text-white/80 mt-1">
             Your supportive AI companion for relationship guidance and growth
@@ -120,7 +120,7 @@ const AiCompanion = () => {
               <div className="flex justify-start">
                 <div className="bg-muted rounded-lg p-3 flex items-center gap-2">
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <p className="text-sm">Thinking...</p>
+                  <p className="text-sm">Bloom is thinking...</p>
                 </div>
               </div>
             )}
