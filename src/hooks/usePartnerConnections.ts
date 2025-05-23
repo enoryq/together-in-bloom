@@ -1,29 +1,14 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
-
-// Simplified Partner interface
-export interface Partner {
-  id: string;
-  user_id: string;
-  partner_id: string;
-  status: 'pending' | 'active' | 'declined';
-  connection_date: string | null;
-  created_at: string;
-  profile: {
-    id: string;
-    full_name: string | null;
-    email: string;
-    avatar_url: string | null;
-  } | null;
-}
+import { useToast } from '@/hooks/use-toast';
+import { Partner, Profile } from '@/types';
 
 export function usePartnerConnections(userId: string | undefined) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [partnerConnections, setPartnerConnections] = useState<Partner[]>([]);
-  const [activePartner, setActivePartner] = useState<Partner['profile'] | null>(null);
+  const [activePartner, setActivePartner] = useState<Profile | null>(null);
 
   // Fetch partner connections
   const fetchPartnerConnections = async () => {
@@ -36,7 +21,7 @@ export function usePartnerConnections(userId: string | undefined) {
         .from('partners')
         .select(`
           *,
-          profile:profiles!partner_id(id, full_name, email, avatar_url)
+          profile:profiles!partner_id(id, display_name, avatar_url, created_at, updated_at)
         `)
         .eq('user_id', userId);
 
@@ -47,31 +32,43 @@ export function usePartnerConnections(userId: string | undefined) {
         .from('partners')
         .select(`
           *,
-          profile:profiles!user_id(id, full_name, email, avatar_url)
+          profile:profiles!user_id(id, display_name, avatar_url, created_at, updated_at)
         `)
         .eq('partner_id', userId);
 
       if (partnerError) throw partnerError;
 
-      // Transform the data
+      // Transform the data to match the Partner type
       const allConnections: Partner[] = [
         ...(userConnections || []).map((conn: any) => ({
           id: conn.id,
           user_id: conn.user_id,
           partner_id: conn.partner_id,
-          status: conn.status as 'pending' | 'active' | 'declined',
+          status: conn.status,
           connection_date: conn.connection_date,
           created_at: conn.created_at,
-          profile: conn.profile
+          profile: conn.profile ? {
+            id: conn.profile.id,
+            display_name: conn.profile.display_name || '',
+            avatar_url: conn.profile.avatar_url,
+            created_at: conn.profile.created_at,
+            updated_at: conn.profile.updated_at
+          } as Profile : undefined
         })),
         ...(partnerConnections || []).map((conn: any) => ({
           id: conn.id,
           user_id: conn.user_id,
           partner_id: conn.partner_id,
-          status: conn.status as 'pending' | 'active' | 'declined',
+          status: conn.status,
           connection_date: conn.connection_date,
           created_at: conn.created_at,
-          profile: conn.profile
+          profile: conn.profile ? {
+            id: conn.profile.id,
+            display_name: conn.profile.display_name || '',
+            avatar_url: conn.profile.avatar_url,
+            created_at: conn.profile.created_at,
+            updated_at: conn.profile.updated_at
+          } as Profile : undefined
         }))
       ];
       

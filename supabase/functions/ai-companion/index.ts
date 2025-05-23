@@ -7,8 +7,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// We define a default system prompt for relationship advice
-const RELATIONSHIP_SYSTEM_PROMPT = `You are a compassionate and wise relationship companion AI. 
+// System prompt for Bloom, the relationship companion
+const RELATIONSHIP_SYSTEM_PROMPT = `You are Bloom, a compassionate and wise AI relationship companion. 
 Your purpose is to help users navigate their relationship challenges, foster better communication, 
 and build deeper connections with their partners. 
 
@@ -36,6 +36,8 @@ serve(async (req) => {
     const requestData = await req.json();
     const { message, history = [] } = requestData;
 
+    console.log("Received request:", { message, historyLength: history.length });
+
     if (!message) {
       return new Response(
         JSON.stringify({ error: "No message provided" }),
@@ -58,13 +60,15 @@ serve(async (req) => {
     if (!openaiApiKey) {
       console.error("Missing OpenAI API Key");
       return new Response(
-        JSON.stringify({ error: "Configuration error" }),
+        JSON.stringify({ error: "OpenAI API key is not configured. Please add your OpenAI API key in the Supabase dashboard." }),
         { 
           status: 500, 
           headers: { ...corsHeaders, "Content-Type": "application/json" } 
         }
       );
     }
+
+    console.log("Calling OpenAI API...");
 
     // Call OpenAI API
     const openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -84,11 +88,24 @@ serve(async (req) => {
     if (!openaiResponse.ok) {
       const errorData = await openaiResponse.json();
       console.error("OpenAI API Error:", errorData);
+      
+      if (errorData.error?.code === "invalid_api_key") {
+        return new Response(
+          JSON.stringify({ error: "Invalid OpenAI API key. Please check your API key in the Supabase dashboard." }),
+          { 
+            status: 401, 
+            headers: { ...corsHeaders, "Content-Type": "application/json" } 
+          }
+        );
+      }
+      
       throw new Error(`OpenAI API error: ${errorData.error?.message || openaiResponse.statusText}`);
     }
 
     const data = await openaiResponse.json();
     const aiResponse = data.choices[0]?.message?.content || "I'm sorry, I couldn't process your request.";
+
+    console.log("OpenAI response received successfully");
 
     // Return the AI response
     return new Response(
@@ -101,7 +118,7 @@ serve(async (req) => {
     console.error("Error in AI companion function:", error);
     
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: `Failed to process your request: ${error.message}` }),
       { 
         status: 500, 
         headers: { ...corsHeaders, "Content-Type": "application/json" } 
