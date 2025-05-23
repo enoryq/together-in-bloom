@@ -2,13 +2,30 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Partner, Profile } from '@/types';
+
+interface PartnerProfile {
+  id: string;
+  display_name: string;
+  avatar_url?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface PartnerConnection {
+  id: string;
+  user_id: string;
+  partner_id: string;
+  status: string;
+  connection_date?: string;
+  created_at: string;
+  profile?: PartnerProfile;
+}
 
 export function usePartnerConnections(userId: string | undefined) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [partnerConnections, setPartnerConnections] = useState<Partner[]>([]);
-  const [activePartner, setActivePartner] = useState<Profile | null>(null);
+  const [partnerConnections, setPartnerConnections] = useState<PartnerConnection[]>([]);
+  const [activePartner, setActivePartner] = useState<PartnerProfile | null>(null);
 
   // Fetch partner connections
   const fetchPartnerConnections = async () => {
@@ -38,8 +55,8 @@ export function usePartnerConnections(userId: string | undefined) {
 
       if (partnerError) throw partnerError;
 
-      // Transform the data to match the Partner type
-      const allConnections: Partner[] = [
+      // Transform the data to match the PartnerConnection type
+      const allConnections: PartnerConnection[] = [
         ...(userConnections || []).map((conn: any) => ({
           id: conn.id,
           user_id: conn.user_id,
@@ -53,7 +70,7 @@ export function usePartnerConnections(userId: string | undefined) {
             avatar_url: conn.profile.avatar_url,
             created_at: conn.profile.created_at,
             updated_at: conn.profile.updated_at
-          } as Profile : undefined
+          } : undefined
         })),
         ...(partnerConnections || []).map((conn: any) => ({
           id: conn.id,
@@ -68,7 +85,7 @@ export function usePartnerConnections(userId: string | undefined) {
             avatar_url: conn.profile.avatar_url,
             created_at: conn.profile.created_at,
             updated_at: conn.profile.updated_at
-          } as Profile : undefined
+          } : undefined
         }))
       ];
       
@@ -80,6 +97,7 @@ export function usePartnerConnections(userId: string | undefined) {
         setActivePartner(activeConnection.profile);
       }
     } catch (error: any) {
+      console.error('Error fetching partner connections:', error);
       toast({
         title: "Error",
         description: `Failed to load partner connections: ${error.message}`,
@@ -157,6 +175,7 @@ export function usePartnerConnections(userId: string | undefined) {
       // Refresh connections
       fetchPartnerConnections();
     } catch (error: any) {
+      console.error('Error sending partner request:', error);
       toast({
         title: "Error",
         description: `Failed to send partner request: ${error.message}`,
@@ -186,6 +205,7 @@ export function usePartnerConnections(userId: string | undefined) {
       // Refresh connections
       fetchPartnerConnections();
     } catch (error: any) {
+      console.error('Error accepting request:', error);
       toast({
         title: "Error",
         description: `Failed to accept request: ${error.message}`,
@@ -212,6 +232,7 @@ export function usePartnerConnections(userId: string | undefined) {
       // Refresh connections
       fetchPartnerConnections();
     } catch (error: any) {
+      console.error('Error declining request:', error);
       toast({
         title: "Error",
         description: `Failed to decline request: ${error.message}`,

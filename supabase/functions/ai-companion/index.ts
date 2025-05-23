@@ -32,6 +32,8 @@ serve(async (req) => {
   }
 
   try {
+    console.log("AI Companion function called");
+
     // Get the request body
     const requestData = await req.json();
     const { message, history = [] } = requestData;
@@ -39,10 +41,38 @@ serve(async (req) => {
     console.log("Received request:", { message, historyLength: history.length });
 
     if (!message) {
+      console.error("No message provided in request");
       return new Response(
         JSON.stringify({ error: "No message provided" }),
         { 
           status: 400, 
+          headers: { ...corsHeaders, "Content-Type": "application/json" } 
+        }
+      );
+    }
+
+    // Get OpenAI API key from environment variables
+    const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
+    console.log("API key available:", !!openaiApiKey);
+    
+    if (!openaiApiKey) {
+      console.error("Missing OpenAI API Key");
+      return new Response(
+        JSON.stringify({ error: "OpenAI API key is not configured. Please add your OpenAI API key in the Supabase dashboard under Edge Functions secrets." }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, "Content-Type": "application/json" } 
+        }
+      );
+    }
+
+    // Validate API key format (OpenAI keys start with "sk-")
+    if (!openaiApiKey.startsWith("sk-")) {
+      console.error("Invalid OpenAI API key format");
+      return new Response(
+        JSON.stringify({ error: "Invalid OpenAI API key format. OpenAI API keys should start with 'sk-'. Please check your API key in the Supabase dashboard." }),
+        { 
+          status: 401, 
           headers: { ...corsHeaders, "Content-Type": "application/json" } 
         }
       );
@@ -54,19 +84,6 @@ serve(async (req) => {
       ...history,
       { role: "user", content: message }
     ];
-
-    // Get OpenAI API key from environment variables
-    const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
-    if (!openaiApiKey) {
-      console.error("Missing OpenAI API Key");
-      return new Response(
-        JSON.stringify({ error: "OpenAI API key is not configured. Please add your OpenAI API key in the Supabase dashboard." }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, "Content-Type": "application/json" } 
-        }
-      );
-    }
 
     console.log("Calling OpenAI API...");
 
@@ -85,13 +102,15 @@ serve(async (req) => {
       }),
     });
 
+    console.log("OpenAI response status:", openaiResponse.status);
+
     if (!openaiResponse.ok) {
       const errorData = await openaiResponse.json();
       console.error("OpenAI API Error:", errorData);
       
       if (errorData.error?.code === "invalid_api_key") {
         return new Response(
-          JSON.stringify({ error: "Invalid OpenAI API key. Please check your API key in the Supabase dashboard." }),
+          JSON.stringify({ error: "Invalid OpenAI API key. Please check your API key in the Supabase dashboard under Edge Functions secrets." }),
           { 
             status: 401, 
             headers: { ...corsHeaders, "Content-Type": "application/json" } 
@@ -99,7 +118,13 @@ serve(async (req) => {
         );
       }
       
-      throw new Error(`OpenAI API error: ${errorData.error?.message || openaiResponse.statusText}`);
+      return new Response(
+        JSON.stringify({ error: `OpenAI API error: ${errorData.error?.message || 'Unknown error'}` }),
+        { 
+          status: openaiResponse.status, 
+          headers: { ...corsHeaders, "Content-Type": "application/json" } 
+        }
+      );
     }
 
     const data = await openaiResponse.json();
@@ -118,7 +143,9 @@ serve(async (req) => {
     console.error("Error in AI companion function:", error);
     
     return new Response(
-      JSON.stringify({ error: `Failed to process your request: ${error.message}` }),
+      JSON.stringify({ 
+        error: `Failed to process your request. Please try again. Error: ${error.message}` 
+      }),
       { 
         status: 500, 
         headers: { ...corsHeaders, "Content-Type": "application/json" } 
