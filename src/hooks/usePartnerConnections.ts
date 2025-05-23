@@ -1,7 +1,19 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
-import { Partner, Profile } from '@/types';
+import { Profile } from '@/types';
+
+// Simplified Partner type to avoid deep type instantiation
+export interface Partner {
+  id: string;
+  user_id: string;
+  partner_id: string;
+  status: 'pending' | 'active' | 'declined';
+  connection_date: string | null;
+  created_at: string;
+  profile: Profile | null;
+}
 
 export function usePartnerConnections(userId: string | undefined) {
   const { toast } = useToast();
@@ -38,21 +50,21 @@ export function usePartnerConnections(userId: string | undefined) {
       if (partnerError) throw partnerError;
 
       // Transform the data with simplified typing
-      const userConnectionsMapped: Partner[] = (userConnections || []).map((conn: any) => ({
+      const userConnectionsMapped: Partner[] = (userConnections || []).map((conn) => ({
         id: conn.id,
         user_id: conn.user_id,
         partner_id: conn.partner_id,
-        status: conn.status as 'pending' | 'active' | 'declined',
+        status: conn.status,
         connection_date: conn.connection_date,
         created_at: conn.created_at,
         profile: conn.profile
       }));
 
-      const partnerConnectionsMapped: Partner[] = (partnerConnections || []).map((conn: any) => ({
+      const partnerConnectionsMapped: Partner[] = (partnerConnections || []).map((conn) => ({
         id: conn.id,
         user_id: conn.user_id,
         partner_id: conn.partner_id,
-        status: conn.status as 'pending' | 'active' | 'declined',
+        status: conn.status,
         connection_date: conn.connection_date,
         created_at: conn.created_at,
         profile: conn.profile
