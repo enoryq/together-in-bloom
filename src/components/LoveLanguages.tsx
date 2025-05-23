@@ -174,6 +174,25 @@ const LoveLanguages = () => {
   const totalQuestions = questions.length;
   const progress = ((currentQuestion) / totalQuestions) * 100;
 
+  // Helper function to validate and convert Json to LoveLanguageScore
+  const validateLoveLanguageScore = (data: any): LoveLanguageScore | null => {
+    if (!data || typeof data !== 'object') return null;
+    
+    const requiredKeys: (keyof LoveLanguageScore)[] = ['words', 'service', 'gifts', 'time', 'touch'];
+    
+    for (const key of requiredKeys) {
+      if (typeof data[key] !== 'number') return null;
+    }
+    
+    return {
+      words: data.words,
+      service: data.service,
+      gifts: data.gifts,
+      time: data.time,
+      touch: data.touch
+    };
+  };
+
   useEffect(() => {
     // Try to load saved results if quiz is complete
     const loadSavedResults = async () => {
@@ -188,8 +207,11 @@ const LoveLanguages = () => {
           .maybeSingle();
 
         if (languageData?.love_languages) {
-          setScores(languageData.love_languages as LoveLanguageScore);
-          setQuizComplete(true);
+          const validatedScores = validateLoveLanguageScore(languageData.love_languages);
+          if (validatedScores) {
+            setScores(validatedScores);
+            setQuizComplete(true);
+          }
         }
 
         // Check if user has a partner
@@ -197,7 +219,7 @@ const LoveLanguages = () => {
           .from("partners")
           .select("partner_id")
           .eq("user_id", user.id)
-          .eq("status", "connected")
+          .eq("status", "active")
           .maybeSingle();
 
         if (partnerData?.partner_id) {
@@ -210,7 +232,10 @@ const LoveLanguages = () => {
             .maybeSingle();
 
           if (partnerLanguageData?.love_languages) {
-            setPartnerScores(partnerLanguageData.love_languages as LoveLanguageScore);
+            const validatedPartnerScores = validateLoveLanguageScore(partnerLanguageData.love_languages);
+            if (validatedPartnerScores) {
+              setPartnerScores(validatedPartnerScores);
+            }
           }
         }
 
@@ -221,7 +246,6 @@ const LoveLanguages = () => {
           .eq("user_id", user.id);
 
         if (actionsData) {
-          // Cast to correct type
           setLoveActions(actionsData as LoveAction[]);
         }
       } catch (error) {
@@ -250,9 +274,18 @@ const LoveLanguages = () => {
     if (!user) return;
 
     try {
+      // Convert LoveLanguageScore to a plain object for JSON storage
+      const scoresForDb = {
+        words: finalScores.words,
+        service: finalScores.service,
+        gifts: finalScores.gifts,
+        time: finalScores.time,
+        touch: finalScores.touch
+      };
+
       const { error } = await supabase
         .from("profiles")
-        .update({ love_languages: finalScores })
+        .update({ love_languages: scoresForDb })
         .eq("id", user.id);
 
       if (error) throw error;

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
@@ -19,7 +18,10 @@ export function usePartnerConnections(userId: string | undefined) {
       // Get connections where the current user is the initiator
       const { data: userConnections, error: userError } = await supabase
         .from('partners')
-        .select('*, profile:profiles!partner_id(*)')
+        .select(`
+          *,
+          profile:profiles!partner_id(*)
+        `)
         .eq('user_id', userId);
 
       if (userError) throw userError;
@@ -27,30 +29,16 @@ export function usePartnerConnections(userId: string | undefined) {
       // Also get connections where the current user is the partner
       const { data: partnerConnections, error: partnerError } = await supabase
         .from('partners')
-        .select('*, profile:profiles!user_id(*)')
+        .select(`
+          *,
+          profile:profiles!user_id(*)
+        `)
         .eq('partner_id', userId);
 
       if (partnerError) throw partnerError;
 
-      // Define a simple type for the connections to avoid excessive type instantiation
-      type SimpleConnection = {
-        id: string;
-        user_id: string;
-        partner_id: string;
-        status: string;
-        connection_date: string | null;
-        created_at: string;
-        profile: {
-          id: string;
-          display_name: string;
-          avatar_url: string | null;
-          created_at: string;
-          updated_at: string;
-        };
-      };
-
-      // Transform the data with explicit typing
-      const userConnectionsMapped: Partner[] = (userConnections || []).map((conn: SimpleConnection) => ({
+      // Transform the data with simplified typing
+      const userConnectionsMapped: Partner[] = (userConnections || []).map((conn: any) => ({
         id: conn.id,
         user_id: conn.user_id,
         partner_id: conn.partner_id,
@@ -60,7 +48,7 @@ export function usePartnerConnections(userId: string | undefined) {
         profile: conn.profile
       }));
 
-      const partnerConnectionsMapped: Partner[] = (partnerConnections || []).map((conn: SimpleConnection) => ({
+      const partnerConnectionsMapped: Partner[] = (partnerConnections || []).map((conn: any) => ({
         id: conn.id,
         user_id: conn.user_id,
         partner_id: conn.partner_id,
