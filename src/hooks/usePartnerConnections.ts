@@ -49,22 +49,22 @@ export function usePartnerConnections(userId: string | undefined) {
 
       if (partnerError) throw partnerError;
 
-      // Transform the data with simplified typing
-      const userConnectionsMapped: Partner[] = (userConnections || []).map((conn) => ({
+      // Transform the data with proper type casting
+      const userConnectionsMapped: Partner[] = (userConnections || []).map((conn: any) => ({
         id: conn.id,
         user_id: conn.user_id,
         partner_id: conn.partner_id,
-        status: conn.status,
+        status: conn.status as 'pending' | 'active' | 'declined',
         connection_date: conn.connection_date,
         created_at: conn.created_at,
         profile: conn.profile
       }));
 
-      const partnerConnectionsMapped: Partner[] = (partnerConnections || []).map((conn) => ({
+      const partnerConnectionsMapped: Partner[] = (partnerConnections || []).map((conn: any) => ({
         id: conn.id,
         user_id: conn.user_id,
         partner_id: conn.partner_id,
-        status: conn.status,
+        status: conn.status as 'pending' | 'active' | 'declined',
         connection_date: conn.connection_date,
         created_at: conn.created_at,
         profile: conn.profile

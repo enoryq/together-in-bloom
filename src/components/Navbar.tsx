@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
-import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
   Sheet,
   SheetContent,
@@ -28,19 +28,6 @@ const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  
-  // Since we've wrapped the entire app in SidebarProvider,
-  // useSidebar() is now safe to use, but we'll catch any potential errors
-  const sidebarContext = (() => {
-    try {
-      return useSidebar();
-    } catch (e) {
-      // Return a default object if the sidebar context isn't available
-      return { toggleSidebar: () => {} };
-    }
-  })();
-
-  const { toggleSidebar } = sidebarContext;
 
   const toolsNavItems = [
     { to: "/toolkit", text: "All Tools" },
@@ -73,11 +60,22 @@ const Navbar = () => {
     }
   };
 
+  // Check if we're on a route that should have sidebar (authenticated routes with sidebar)
+  const shouldShowSidebarTrigger = isAuthenticated && !isMobile && 
+    (window.location.pathname.startsWith('/dashboard') || 
+     window.location.pathname.startsWith('/journal') || 
+     window.location.pathname.startsWith('/connect') || 
+     window.location.pathname.startsWith('/profile') || 
+     window.location.pathname.startsWith('/toolkit') || 
+     window.location.pathname.startsWith('/love-languages') || 
+     window.location.pathname.startsWith('/emotions-wheel') || 
+     window.location.pathname.startsWith('/ai-companion'));
+
   return (
     <header className="w-full sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
       <div className="container flex items-center justify-between h-16 px-4">
         <div className="flex items-center space-x-2">
-          {isAuthenticated && !isMobile && (
+          {shouldShowSidebarTrigger && (
             <SidebarTrigger className="h-8 w-8" />
           )}
           
