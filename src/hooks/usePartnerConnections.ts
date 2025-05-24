@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -15,7 +14,7 @@ interface PartnerConnection {
   id: string;
   user_id: string;
   partner_id: string;
-  status: string;
+  status: 'active' | 'pending' | 'declined';
   connection_date?: string;
   created_at: string;
   profile?: PartnerProfile;
@@ -61,7 +60,7 @@ export function usePartnerConnections(userId: string | undefined) {
           id: conn.id,
           user_id: conn.user_id,
           partner_id: conn.partner_id,
-          status: conn.status,
+          status: conn.status as 'active' | 'pending' | 'declined',
           connection_date: conn.connection_date,
           created_at: conn.created_at,
           profile: conn.profile ? {
@@ -76,7 +75,7 @@ export function usePartnerConnections(userId: string | undefined) {
           id: conn.id,
           user_id: conn.user_id,
           partner_id: conn.partner_id,
-          status: conn.status,
+          status: conn.status as 'active' | 'pending' | 'declined',
           connection_date: conn.connection_date,
           created_at: conn.created_at,
           profile: conn.profile ? {

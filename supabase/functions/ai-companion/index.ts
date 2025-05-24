@@ -51,14 +51,14 @@ serve(async (req) => {
       );
     }
 
-    // Get OpenAI API key from environment variables
-    const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
-    console.log("API key available:", !!openaiApiKey);
+    // Get Google Gemini API key from environment variables
+    const geminiApiKey = Deno.env.get("GEMINI_API_KEY");
+    console.log("API key available:", !!geminiApiKey);
     
-    if (!openaiApiKey) {
-      console.error("Missing OpenAI API Key");
+    if (!geminiApiKey) {
+      console.error("Missing Gemini API Key");
       return new Response(
-        JSON.stringify({ error: "OpenAI API key is not configured. Please add your OpenAI API key in the Supabase dashboard under Edge Functions secrets." }),
+        JSON.stringify({ error: "Gemini API key is not configured. Please add your Gemini API key in the Supabase dashboard under Edge Functions secrets." }),
         { 
           status: 500, 
           headers: { ...corsHeaders, "Content-Type": "application/json" } 
@@ -66,51 +66,55 @@ serve(async (req) => {
       );
     }
 
-    // Validate API key format (OpenAI keys start with "sk-")
-    if (!openaiApiKey.startsWith("sk-")) {
-      console.error("Invalid OpenAI API key format");
-      return new Response(
-        JSON.stringify({ error: "Invalid OpenAI API key format. OpenAI API keys should start with 'sk-'. Please check your API key in the Supabase dashboard." }),
-        { 
-          status: 401, 
-          headers: { ...corsHeaders, "Content-Type": "application/json" } 
-        }
-      );
+    // Prepare the conversation for Gemini
+    let conversationText = RELATIONSHIP_SYSTEM_PROMPT + "\n\n";
+    
+    // Add conversation history
+    for (const msg of history) {
+      if (msg.role === 'user') {
+        conversationText += `User: ${msg.content}\n`;
+      } else if (msg.role === 'assistant') {
+        conversationText += `Bloom: ${msg.content}\n`;
+      }
     }
+    
+    // Add current message
+    conversationText += `User: ${message}\nBloom:`;
 
-    // Prepare the messages for OpenAI
-    const messages = [
-      { role: "system", content: RELATIONSHIP_SYSTEM_PROMPT },
-      ...history,
-      { role: "user", content: message }
-    ];
+    console.log("Calling Gemini API...");
 
-    console.log("Calling OpenAI API...");
-
-    // Call OpenAI API
-    const openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+    // Call Google Gemini API
+    const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiApiKey}`, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${openaiApiKey}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages,
-        temperature: 0.7,
-        max_tokens: 500,
+        contents: [
+          {
+            parts: [
+              {
+                text: conversationText
+              }
+            ]
+          }
+        ],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 500,
+        }
       }),
     });
 
-    console.log("OpenAI response status:", openaiResponse.status);
+    console.log("Gemini response status:", geminiResponse.status);
 
-    if (!openaiResponse.ok) {
-      const errorData = await openaiResponse.json();
-      console.error("OpenAI API Error:", errorData);
+    if (!geminiResponse.ok) {
+      const errorData = await geminiResponse.json();
+      console.error("Gemini API Error:", errorData);
       
-      if (errorData.error?.code === "invalid_api_key") {
+      if (geminiResponse.status === 401 || geminiResponse.status === 403) {
         return new Response(
-          JSON.stringify({ error: "Invalid OpenAI API key. Please check your API key in the Supabase dashboard under Edge Functions secrets." }),
+          JSON.stringify({ error: "Invalid Gemini API key. Please check your API key in the Supabase dashboard under Edge Functions secrets." }),
           { 
             status: 401, 
             headers: { ...corsHeaders, "Content-Type": "application/json" } 
@@ -119,18 +123,18 @@ serve(async (req) => {
       }
       
       return new Response(
-        JSON.stringify({ error: `OpenAI API error: ${errorData.error?.message || 'Unknown error'}` }),
+        JSON.stringify({ error: `Gemini API error: ${errorData.error?.message || 'Unknown error'}` }),
         { 
-          status: openaiResponse.status, 
+          status: geminiResponse.status, 
           headers: { ...corsHeaders, "Content-Type": "application/json" } 
         }
       );
     }
 
-    const data = await openaiResponse.json();
-    const aiResponse = data.choices[0]?.message?.content || "I'm sorry, I couldn't process your request.";
+    const data = await geminiResponse.json();
+    const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || "I'm sorry, I couldn't process your request.";
 
-    console.log("OpenAI response received successfully");
+    console.log("Gemini response received successfully");
 
     // Return the AI response
     return new Response(
