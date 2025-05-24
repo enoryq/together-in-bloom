@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -18,6 +19,22 @@ interface PartnerConnection {
   connection_date?: string;
   created_at: string;
   profile?: PartnerProfile;
+}
+
+interface PartnerConnectionsResponse {
+  id: string;
+  user_id: string;
+  partner_id: string;
+  status: string;
+  connection_date?: string;
+  created_at: string;
+  profile?: {
+    id: string;
+    display_name: string;
+    avatar_url?: string;
+    created_at: string;
+    updated_at: string;
+  };
 }
 
 export function usePartnerConnections(userId: string | undefined) {
@@ -56,7 +73,7 @@ export function usePartnerConnections(userId: string | undefined) {
 
       // Transform the data to match the PartnerConnection type
       const allConnections: PartnerConnection[] = [
-        ...(userConnections || []).map((conn: any) => ({
+        ...(userConnections || []).map((conn: PartnerConnectionsResponse) => ({
           id: conn.id,
           user_id: conn.user_id,
           partner_id: conn.partner_id,
@@ -71,7 +88,7 @@ export function usePartnerConnections(userId: string | undefined) {
             updated_at: conn.profile.updated_at
           } : undefined
         })),
-        ...(partnerConnections || []).map((conn: any) => ({
+        ...(partnerConnections || []).map((conn: PartnerConnectionsResponse) => ({
           id: conn.id,
           user_id: conn.user_id,
           partner_id: conn.partner_id,
