@@ -24,6 +24,17 @@ const Connect = () => {
   const activeConnections = partnerConnections.filter(conn => conn.status === 'active');
   const declinedConnections = partnerConnections.filter(conn => conn.status === 'declined');
 
+  // Separate incoming and outgoing requests
+  const incomingRequests = pendingRequests; // For now, treating all pending as incoming
+  const outgoingRequests: typeof pendingRequests = []; // We'll implement this logic later
+
+  // Handle message sending with proper signature
+  const handleSendMessage = (content: string) => {
+    if (activePartner) {
+      sendMessage(activePartner.id, content);
+    }
+  };
+
   return (
     <div className="container py-8">
       <h1 className="text-3xl font-bold mb-2">Connect with Your Partner</h1>
@@ -52,20 +63,17 @@ const Connect = () => {
                 
                 <TabsContent value="connection" className="space-y-4">
                   <ConnectionTab
-                    activePartner={activePartner}
+                    activeConnections={activeConnections}
                     onSendRequest={sendPartnerRequest}
-                    loading={loading}
                   />
                 </TabsContent>
                 
                 <TabsContent value="requests" className="space-y-4">
                   <RequestsTab
-                    pendingRequests={pendingRequests}
-                    activeConnections={activeConnections}
-                    declinedConnections={declinedConnections}
+                    incomingRequests={incomingRequests}
+                    outgoingRequests={outgoingRequests}
                     onAcceptRequest={acceptPartnerRequest}
                     onDeclineRequest={declinePartnerRequest}
-                    loading={loading}
                   />
                 </TabsContent>
               </Tabs>
@@ -78,7 +86,7 @@ const Connect = () => {
           <MessageArea
             activePartner={activePartner}
             messages={messages}
-            onSendMessage={sendMessage}
+            onSendMessage={handleSendMessage}
             loading={loadingMessages}
           />
         </div>

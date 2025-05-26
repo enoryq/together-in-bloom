@@ -9,25 +9,26 @@ import { Partner, Profile } from '@/types';
 
 interface ConnectionTabProps {
   activeConnections: Partner[];
-  selectedPartnerId: string | null;
-  onSelectPartner: (partnerId: string) => void;
-  onSendRequest: (e: React.FormEvent) => void;
-  partnerEmail: string;
-  onPartnerEmailChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onSendRequest: (partnerEmail: string) => void;
 }
 
 const ConnectionTab = ({
   activeConnections,
-  selectedPartnerId,
-  onSelectPartner,
-  onSendRequest,
-  partnerEmail,
-  onPartnerEmailChange
+  onSendRequest
 }: ConnectionTabProps) => {
+  const [partnerEmail, setPartnerEmail] = useState('');
   
   // Helper to extract profile from connection
   const getPartnerProfile = (connection: Partner): Profile => {
     return connection.profile as Profile;
+  };
+  
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (partnerEmail.trim()) {
+      onSendRequest(partnerEmail.trim());
+      setPartnerEmail('');
+    }
   };
   
   return (
@@ -37,7 +38,7 @@ const ConnectionTab = ({
           <CardTitle className="text-xl">Your Partner</CardTitle>
           <CardDescription>
             {activeConnections.length > 0 
-              ? "Message your connected partner" 
+              ? "Your connected partners" 
               : "You don't have any active connections yet"}
           </CardDescription>
         </CardHeader>
@@ -50,15 +51,11 @@ const ConnectionTab = ({
           ) : (
             activeConnections.map(connection => {
               const profile = getPartnerProfile(connection);
-              const isSelected = selectedPartnerId === profile.id;
               
               return (
                 <div 
                   key={connection.id} 
-                  className={`p-3 rounded-lg flex items-center gap-3 cursor-pointer ${
-                    isSelected ? 'bg-primary/10' : 'hover:bg-muted'
-                  }`}
-                  onClick={() => onSelectPartner(profile.id)}
+                  className="p-3 rounded-lg flex items-center gap-3 hover:bg-muted"
                 >
                   <Avatar>
                     <AvatarImage src={profile.avatar_url || ''} />
@@ -68,19 +65,19 @@ const ConnectionTab = ({
                     <p className="font-medium">{profile.display_name}</p>
                     <p className="text-sm text-muted-foreground">Connected</p>
                   </div>
-                  {isSelected && <Check className="h-4 w-4 text-primary" />}
+                  <Check className="h-4 w-4 text-primary" />
                 </div>
               );
             })
           )}
         </CardContent>
         <CardFooter>
-          <form className="w-full" onSubmit={onSendRequest}>
+          <form className="w-full" onSubmit={handleSubmit}>
             <div className="flex w-full gap-2">
               <Input 
                 placeholder="partner@email.com" 
                 value={partnerEmail}
-                onChange={onPartnerEmailChange}
+                onChange={(e) => setPartnerEmail(e.target.value)}
                 className="flex-1"
               />
               <Button type="submit">Connect</Button>
