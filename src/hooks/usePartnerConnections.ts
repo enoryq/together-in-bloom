@@ -4,6 +4,16 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Partner, Profile } from '@/types';
 
+interface SupabasePartnerConnection {
+  id: string;
+  user_id: string;
+  partner_id: string;
+  status: 'pending' | 'active' | 'declined';
+  connection_date: string | null;
+  created_at: string;
+  profile: Profile;
+}
+
 export function usePartnerConnections(userId: string | undefined) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
@@ -38,33 +48,27 @@ export function usePartnerConnections(userId: string | undefined) {
 
       if (partnerError) throw partnerError;
 
-      // Transform the data to match the Partner type
+      // Transform the data with explicit typing
+      const transformConnection = (conn: any): Partner => ({
+        id: conn.id,
+        user_id: conn.user_id,
+        partner_id: conn.partner_id,
+        status: conn.status,
+        connection_date: conn.connection_date,
+        created_at: conn.created_at,
+        profile: conn.profile as Profile
+      });
+
       const allConnections: Partner[] = [
-        ...(userConnections || []).map((conn: any) => ({
-          id: conn.id,
-          user_id: conn.user_id,
-          partner_id: conn.partner_id,
-          status: conn.status,
-          connection_date: conn.connection_date,
-          created_at: conn.created_at,
-          profile: conn.profile
-        })),
-        ...(partnerConnections || []).map((conn: any) => ({
-          id: conn.id,
-          user_id: conn.user_id,
-          partner_id: conn.partner_id,
-          status: conn.status,
-          connection_date: conn.connection_date,
-          created_at: conn.created_at,
-          profile: conn.profile
-        }))
+        ...(userConnections || []).map(transformConnection),
+        ...(partnerConnections || []).map(transformConnection)
       ];
       
       setPartnerConnections(allConnections);
 
       // Set the active partner if there's an active connection
       const activeConnection = allConnections.find(conn => conn.status === 'active');
-      if (activeConnection && activeConnection.profile) {
+      if (activeConnection?.profile) {
         setActivePartner(activeConnection.profile);
       }
     } catch (error: any) {
