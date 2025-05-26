@@ -5,7 +5,14 @@ import {
   Book, 
   MessageCircle, 
   User, 
-  Settings 
+  Settings,
+  Home,
+  Users,
+  Target,
+  Trophy,
+  Bot,
+  Calendar,
+  Sparkles
 } from "lucide-react";
 import {
   Sidebar,
@@ -30,33 +37,25 @@ const AppSidebar = () => {
   const isCollapsed = state === "collapsed";
   
   const mainNavItems = [
-    { to: "/dashboard", text: "Dashboard", icon: <Heart size={20} /> },
+    { to: "/dashboard", text: "Dashboard", icon: <Home size={20} /> },
+    { to: "/connect", text: "Partner Hub", icon: <Users size={20} /> },
     { to: "/journal", text: "Journal", icon: <Book size={20} /> },
-    { to: "/connect", text: "Partner", icon: <User size={20} /> },
+    { to: "/ai-companion", text: "AI Coach", icon: <Bot size={20} /> },
   ];
   
   const toolsNavItems = [
-    { to: "/toolkit", text: "All Tools", icon: <MessageCircle size={20} /> },
+    { to: "/toolkit", text: "All Tools", icon: <Target size={20} /> },
     { to: "/love-languages", text: "Love Languages", icon: <Heart size={16} /> },
-    { to: "/emotions-wheel", text: "Emotions Wheel", icon: <Book size={16} /> },
+    { to: "/emotions-wheel", text: "Emotions Wheel", icon: <Sparkles size={16} /> },
   ];
 
-  const profileNavItems = [
-    { to: "/profile", text: "Profile", icon: <User size={20} /> },
-    { to: "/about", text: "About", icon: <Settings size={20} /> },
+  const personalNavItems = [
+    { to: "/profile", text: "Profile & Milestones", icon: <Calendar size={20} /> },
+    { to: "/about", text: "About App", icon: <Settings size={20} /> },
   ];
 
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     isActive ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted/50";
-
-  // Check if any main nav item is active
-  const isMainGroupActive = mainNavItems.some(item => location.pathname === item.to);
-  
-  // Check if any tools nav item is active
-  const isToolsGroupActive = toolsNavItems.some(item => location.pathname === item.to);
-  
-  // Check if any profile nav item is active
-  const isProfileGroupActive = profileNavItems.some(item => location.pathname === item.to);
 
   return (
     <Sidebar
@@ -97,7 +96,7 @@ const AppSidebar = () => {
 
         {/* Tools Group */}
         <SidebarGroup>
-          <SidebarGroupLabel>Tools</SidebarGroupLabel>
+          <SidebarGroupLabel>Relationship Tools</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {toolsNavItems.map((item) => (
@@ -114,12 +113,12 @@ const AppSidebar = () => {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Profile Group */}
+        {/* Personal Group */}
         <SidebarGroup>
-          <SidebarGroupLabel>Settings</SidebarGroupLabel>
+          <SidebarGroupLabel>Personal</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {profileNavItems.map((item) => (
+              {personalNavItems.map((item) => (
                 <SidebarMenuItem key={item.to}>
                   <SidebarMenuButton asChild tooltip={isCollapsed ? item.text : undefined}>
                     <NavLink to={item.to} className={getNavCls}>

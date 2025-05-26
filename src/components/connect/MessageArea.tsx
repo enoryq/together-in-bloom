@@ -5,6 +5,7 @@ import { MessageSquare } from 'lucide-react';
 import MessageList from '@/components/connect/MessageList';
 import MessageInput from '@/components/connect/MessageInput';
 import { Message } from '@/types';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface MessageAreaProps {
   activePartner: Profile | null;
@@ -19,6 +20,7 @@ const MessageArea = ({
   onSendMessage,
   loading
 }: MessageAreaProps) => {
+  const { user } = useAuth();
   
   return (
     <Card className="h-full flex flex-col">
@@ -41,7 +43,7 @@ const MessageArea = ({
         ) : (
           <MessageList 
             messages={messages}
-            currentUserId={activePartner.id}
+            currentUserId={user?.id || ''}
             loading={loading}
           />
         )}

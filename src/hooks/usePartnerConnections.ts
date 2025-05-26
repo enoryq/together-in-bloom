@@ -4,16 +4,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Partner, Profile } from '@/types';
 
-interface SupabasePartnerConnection {
-  id: string;
-  user_id: string;
-  partner_id: string;
-  status: 'pending' | 'active' | 'declined';
-  connection_date: string | null;
-  created_at: string;
-  profile: Profile;
-}
-
 export function usePartnerConnections(userId: string | undefined) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
@@ -48,20 +38,16 @@ export function usePartnerConnections(userId: string | undefined) {
 
       if (partnerError) throw partnerError;
 
-      // Transform the data with explicit typing
-      const transformConnection = (conn: any): Partner => ({
-        id: conn.id,
-        user_id: conn.user_id,
-        partner_id: conn.partner_id,
-        status: conn.status,
-        connection_date: conn.connection_date,
-        created_at: conn.created_at,
-        profile: conn.profile as Profile
-      });
-
+      // Transform the data with simple type assertion
       const allConnections: Partner[] = [
-        ...(userConnections || []).map(transformConnection),
-        ...(partnerConnections || []).map(transformConnection)
+        ...(userConnections || []).map((conn: any) => ({
+          ...conn,
+          profile: conn.profile
+        } as Partner)),
+        ...(partnerConnections || []).map((conn: any) => ({
+          ...conn,
+          profile: conn.profile
+        } as Partner))
       ];
       
       setPartnerConnections(allConnections);
